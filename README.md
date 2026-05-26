@@ -1,5 +1,5 @@
 # NavHud
-NavHud is a mod for Kitten Space Agency that adds a heads up displays the attitude indicator/apollo 8-ball on the area around your vehicle.
+NavHud is a mod that adds a heads-up display that shows the attitude indicator/apollo 8-ball on the area around your vehicle.
 
 **Updated for KSA v2026.5.11.4462**
 
