@@ -1,7 +1,9 @@
 # NavHud
-NavHud is a mod for Kitten Space Agency that adds a heads up display that replicates the atitude indicator/apollo 8-ball, except project to the area around your vehicle.
+NavHud is a mod for Kitten Space Agency that adds a heads up displays the attitude indicator/apollo 8-ball on the area around your vehicle.
 
 **Updated for KSA v2026.5.11.4462**
+
+<img width="460" height="290" alt="NavHud Mod Picture" src="https://github.com/user-attachments/assets/7d80d09d-4972-4420-b13e-fd702393f357" />
 
 ## How to install
 1. Install [StarMap](https://github.com/StarMapLoader/StarMap/)
@@ -31,5 +33,5 @@ NavHud is a mod for Kitten Space Agency that adds a heads up display that replic
 2. Turn it off or change settings by using the ModMenu menu
 
 ## Links
+* [NavHud on Ahwoo Forums](https://forums.ahwoo.com/threads/navhud.971/)
 * [NavHud on SpaceDock](https://spacedock.info/mod/4283/NavHud)
-* [Demonstration on Youtube](https://youtu.be/QDrmacfHLlM) 
