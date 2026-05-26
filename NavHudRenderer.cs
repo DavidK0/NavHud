@@ -52,7 +52,7 @@ public sealed class NavHudRenderer {
         if(!settings.ShowGridLines) return;
 
         switch(settings.Mode) {
-            case NavMode.Basic:
+            case NavMode.Equatorial:
                 gridRenderer.DrawEquatorial(frame, settings.Grid);
                 break;
 

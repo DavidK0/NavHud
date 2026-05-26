@@ -5,7 +5,7 @@ using System.Text;
 
 namespace NavHud {
     public sealed class NavHudSettings {
-        public NavMode Mode = NavMode.Basic;
+        public NavMode Mode = NavMode.AzAlt;
 
         public bool IgnoreZoom = true;
         public float FixedSphereSize = 10.0f;
@@ -44,7 +44,7 @@ namespace NavHud {
 
     public enum NavMode {
         Off,
-        Basic,
+        Equatorial,
         AzAlt
     }
 

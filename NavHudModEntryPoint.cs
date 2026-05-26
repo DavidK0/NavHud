@@ -17,8 +17,8 @@ public class NavHudModEntryPoint {
             Settings.Mode = NavMode.Off;
         }
 
-        if(ImGui.MenuItem("Equatorial", "", Settings.Mode == NavMode.Basic)) {
-            Settings.Mode = NavMode.Basic;
+        if(ImGui.MenuItem("Equatorial", "", Settings.Mode == NavMode.Equatorial)) {
+            Settings.Mode = NavMode.Equatorial;
         }
 
         if(ImGui.MenuItem("Az / Alt", "", Settings.Mode == NavMode.AzAlt)) {
