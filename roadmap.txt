@@ -1,0 +1,13 @@
+Current features:
+ - equatorial grid and local horizontal grid (switchable) wireframe spheres
+ - attitude indicator
+ - togglable zoom-based or fixed size for the grids and attitude indicator.
+ - Prograde/retrograde, normal/antinormal, radial in/out.
+ - Option to show only some indicators, e.g. only prograde/retrograde.
+ - Option to disable grid lines and show only attitude markers.
+ TODO:
+ - target/antitarget indicators when a target is selected.
+ - Docking port alignment indicator when a docking port is selected.
+ - Color/symbol selection for all indicators.
+ - better grid display/more options
+ - line thickness
