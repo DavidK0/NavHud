@@ -1,56 +1,269 @@
 ﻿using Brutal.Numerics;
-using System;
-using System.Collections.Generic;
+using System.Globalization;
 using System.Text;
+using Brutal.Logging;
 
-namespace NavHud {
-    public sealed class NavHudSettings {
-        public NavMode Mode = NavMode.AzAlt;
+namespace NavHud;
 
-        public bool IgnoreZoom = true;
-        public float FixedSphereSize = 10.0f;
-        public float ZoomScale = 100.0f;
+public sealed class NavHudSettings {
+    public NavMode Mode = NavMode.AzAlt;
 
-        public bool ShowGridLines = true;
-        public bool ShowAttitudeMarker = true;
+    public bool IgnoreZoom = true;
+    public float FixedSphereSize = 10.0f;
+    public float ZoomScale = 100.0f;
 
-        public IndicatorSettings Prograde = new(HudSymbol.Prograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
-        public IndicatorSettings Retrograde = new(HudSymbol.Retrograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
-        public IndicatorSettings Normal = new(HudSymbol.Normal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
-        public IndicatorSettings Antinormal = new(HudSymbol.Antinormal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
-        public IndicatorSettings RadialIn = new(HudSymbol.RadialIn, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
-        public IndicatorSettings RadialOut = new(HudSymbol.RadialOut, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
-        public IndicatorSettings Target = new(HudSymbol.Target, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
-        public IndicatorSettings Antitarget = new(HudSymbol.Antitarget, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
-        public IndicatorSettings DockingAlignment = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
-        public IndicatorSettings Maneuver = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
+    public bool ShowGridLines = true;
+    public bool ShowAttitudeMarker = true;
 
-        public GridSettings Grid = new();
+    public IndicatorSettings Prograde = new(HudSymbol.Prograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
+    public IndicatorSettings Retrograde = new(HudSymbol.Retrograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
+    public IndicatorSettings Normal = new(HudSymbol.Normal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
+    public IndicatorSettings Antinormal = new(HudSymbol.Antinormal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
+    public IndicatorSettings RadialIn = new(HudSymbol.RadialIn, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
+    public IndicatorSettings RadialOut = new(HudSymbol.RadialOut, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
+    public IndicatorSettings Target = new(HudSymbol.Target, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
+    public IndicatorSettings Antitarget = new(HudSymbol.Antitarget, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
+    public IndicatorSettings DockingAlignment = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
+    public IndicatorSettings Maneuver = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
 
+    public GridSettings Grid = new();
+
+    public NavHudSettings Clone() {
+        return new NavHudSettings {
+            Mode = Mode,
+            IgnoreZoom = IgnoreZoom,
+            FixedSphereSize = FixedSphereSize,
+            ZoomScale = ZoomScale,
+
+            ShowGridLines = ShowGridLines,
+            ShowAttitudeMarker = ShowAttitudeMarker,
+
+            Grid = Grid.Clone(),
+
+            Prograde = Prograde.Clone(),
+            Retrograde = Retrograde.Clone(),
+            Normal = Normal.Clone(),
+            Antinormal = Antinormal.Clone(),
+            RadialIn = RadialIn.Clone(),
+            RadialOut = RadialOut.Clone(),
+            Target = Target.Clone(),
+            Antitarget = Antitarget.Clone(),
+            DockingAlignment = DockingAlignment.Clone(),
+            Maneuver = Maneuver.Clone()
+        };
+    }
+}
+
+public sealed class IndicatorSettings {
+    public bool Enabled = true;
+    public float4 Color = float4.One;
+    public HudSymbol Symbol;
+
+    public IndicatorSettings() : this(HudSymbol.Cross, float4.One) {}
+
+    public IndicatorSettings(HudSymbol symbol, float4 color) {
+        Symbol = symbol;
+        Color = color;
     }
 
-    public sealed class IndicatorSettings {
-        public bool Enabled = true;
-        public float4 Color = float4.One;
-        public HudSymbol Symbol;
+    public IndicatorSettings Clone() {
+        return new IndicatorSettings {
+            Enabled = Enabled,
+            Color = Color,
+            Symbol = Symbol
+        };
+    }
+}
 
-        public IndicatorSettings() : this(HudSymbol.Cross, float4.One) {}
+public enum NavMode {
+    Off,
+    Equatorial,
+    AzAlt
+}
 
-        public IndicatorSettings(HudSymbol symbol, float4 color) {
-            Symbol = symbol;
-            Color = color;
+public sealed class GridSettings {
+    public int Segments = 64;
+    public int Rings = 12;
+    public float4 Color = float4.One;
+
+    public GridSettings Clone() {
+        return new GridSettings {
+            Segments = Segments,
+            Rings = Rings,
+            Color = Color
+        };
+    }
+}
+
+internal static class NavHudSettingsStore {
+    private static SaveScopedSettingsStore<NavHudSettings>? _store;
+    private static NavHudSettings _current = new();
+
+    public static NavHudSettings Current {
+        get {
+            EnsureInitialized();
+            return _current;
         }
     }
 
-    public enum NavMode {
-        Off,
-        Equatorial,
-        AzAlt
+    public static void LoadForSave(string saveId) {
+        EnsureInitialized();
+
+        _store.Load();
+
+        // Important: clone so UI does not mutate the persisted block directly.
+        _current = _store.GetCurrent(saveId).Clone();
     }
 
-    public sealed class GridSettings {
-        public int Segments = 64;
-        public int Rings = 12;
-        public float4 Color = float4.One;
+    public static void SaveForSave(string saveId) {
+        EnsureInitialized();
+
+        if(string.IsNullOrEmpty(saveId))
+            return;
+
+        // Important: clone so future UI edits do not mutate the saved block directly.
+        _store.Set(saveId, _current.Clone());
+        _store.Save();
+    }
+
+    public static void SetCurrentFromDefaults() {
+        _current = new NavHudSettings();
+    }
+
+    private static void EnsureInitialized() {
+        if(_store == null)
+            throw new InvalidOperationException("NavHudSettingsStore.Init() must be called before use.");
+    }
+
+    public static void Init() {
+        string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+
+        string modDir = Path.Combine(
+            userDocs,
+            "My Games",
+            "Kitten Space Agency",
+            "mods",
+            "NavHud");
+
+        _store = new SaveScopedSettingsStore<NavHudSettings>(
+            modDir,
+            "settings.toml",
+            () => new NavHudSettings(),
+            NavHudSettingsToml.Read,
+            NavHudSettingsToml.Write);
+    }
+
+    public static void Load() {
+        EnsureInitialized();
+        _store.Load();
+    }
+
+    public static void Save() {
+        EnsureInitialized();
+        _store.Save();
+    }
+}
+
+internal static class NavHudSettingsToml {
+    public static NavHudSettings Read(SettingsBlock block) {
+        var s = new NavHudSettings();
+
+        if(block.TryEnum("mode", out NavMode mode))
+            s.Mode = mode;
+
+        s.IgnoreZoom = block.GetBool("ignore_zoom", s.IgnoreZoom);
+        s.FixedSphereSize = block.GetFloat("fixed_sphere_size", s.FixedSphereSize);
+        s.ZoomScale = block.GetFloat("zoom_scale", s.ZoomScale);
+
+        s.ShowGridLines = block.GetBool("show_grid_lines", s.ShowGridLines);
+        s.ShowAttitudeMarker = block.GetBool(
+            "show_attitude_marker",
+            s.ShowAttitudeMarker);
+
+        ReadIndicator(block, "prograde", s.Prograde);
+        ReadIndicator(block, "retrograde", s.Retrograde);
+        ReadIndicator(block, "normal", s.Normal);
+        ReadIndicator(block, "antinormal", s.Antinormal);
+        ReadIndicator(block, "radial_in", s.RadialIn);
+        ReadIndicator(block, "radial_out", s.RadialOut);
+        ReadIndicator(block, "target", s.Target);
+        ReadIndicator(block, "antitarget", s.Antitarget);
+        ReadIndicator(block, "docking_alignment", s.DockingAlignment);
+        ReadIndicator(block, "maneuver", s.Maneuver);
+
+        s.Grid.Segments = block.GetInt(
+            "grid_segments",
+            s.Grid.Segments);
+
+        s.Grid.Rings = block.GetInt(
+            "grid_rings",
+            s.Grid.Rings);
+
+        s.Grid.Color = block.GetFloat4(
+            "grid_color",
+            s.Grid.Color);
+
+        return s;
+    }
+
+    public static void Write(
+        SettingsBlockWriter writer,
+        string saveId,
+        NavHudSettings s) {
+
+        writer.BeginSettingsBlock(saveId);
+
+        writer.Write("mode", s.Mode);
+
+        writer.Write("ignore_zoom", s.IgnoreZoom);
+        writer.Write("fixed_sphere_size", s.FixedSphereSize);
+        writer.Write("zoom_scale", s.ZoomScale);
+
+        writer.Write("show_grid_lines", s.ShowGridLines);
+        writer.Write("show_attitude_marker", s.ShowAttitudeMarker);
+
+        WriteIndicator(writer, "prograde", s.Prograde);
+        WriteIndicator(writer, "retrograde", s.Retrograde);
+        WriteIndicator(writer, "normal", s.Normal);
+        WriteIndicator(writer, "antinormal", s.Antinormal);
+        WriteIndicator(writer, "radial_in", s.RadialIn);
+        WriteIndicator(writer, "radial_out", s.RadialOut);
+        WriteIndicator(writer, "target", s.Target);
+        WriteIndicator(writer, "antitarget", s.Antitarget);
+        WriteIndicator(writer, "docking_alignment", s.DockingAlignment);
+        WriteIndicator(writer, "maneuver", s.Maneuver);
+
+        writer.Write("grid_segments", s.Grid.Segments);
+        writer.Write("grid_rings", s.Grid.Rings);
+        writer.Write("grid_color", s.Grid.Color);
+
+        writer.EndBlock();
+    }
+
+    private static void ReadIndicator(
+        SettingsBlock block,
+        string prefix,
+        IndicatorSettings s) {
+
+        s.Enabled = block.GetBool(
+            $"{prefix}_enabled",
+            s.Enabled);
+
+        if(block.TryEnum($"{prefix}_symbol", out HudSymbol symbol))
+            s.Symbol = symbol;
+
+        s.Color = block.GetFloat4(
+            $"{prefix}_color",
+            s.Color);
+    }
+
+    private static void WriteIndicator(
+        SettingsBlockWriter writer,
+        string prefix,
+        IndicatorSettings s) {
+
+        writer.Write($"{prefix}_enabled", s.Enabled);
+        writer.Write($"{prefix}_symbol", s.Symbol);
+        writer.Write($"{prefix}_color", s.Color);
     }
 }

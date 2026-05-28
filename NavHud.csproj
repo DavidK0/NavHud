@@ -13,6 +13,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="Brutal.Core.Logging">
+      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Logging.dll</HintPath>
+    </Reference>
     <Reference Include="Brutal.Core.Numerics">
       <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
     </Reference>

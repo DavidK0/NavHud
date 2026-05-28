@@ -1,38 +1,53 @@
-﻿using System.Collections.Generic;
-using Brutal.ImGuiApi;
+﻿using Brutal.ImGuiApi;
+using HarmonyLib;
 using KSA;
 using ModMenu;
 using StarMap.API;
+using System.Collections.Generic;
 
 namespace NavHud;
 
 [StarMapMod]
 public class NavHudModEntryPoint {
-    private static readonly NavHudSettings Settings = new();
-    private static readonly NavHudRenderer Renderer = new(Settings);
+    private static Harmony? _harmony;
+
+    private static NavHudRenderer Renderer;
+
+    [StarMapAllModsLoaded]
+    public static void OnFullyLoaded() {
+        NavHudSettingsStore.Init();
+        NavHudSettingsStore.Load();
+
+        _harmony = new Harmony("dejvid.navhud");
+        Renderer = new NavHudRenderer();
+
+        SaveLoadObserver.ApplyPatches(_harmony);
+    }
 
     [ModMenuEntry("NavHud")]
     public static void DrawMenu() {
-        if(ImGui.MenuItem("Off", "", Settings.Mode == NavMode.Off)) {
-            Settings.Mode = NavMode.Off;
+        NavHudSettings settings = NavHudSettingsStore.Current;
+
+        if(ImGui.MenuItem("Off", "", settings.Mode == NavMode.Off)) {
+            settings.Mode = NavMode.Off;
         }
 
-        if(ImGui.MenuItem("Equatorial", "", Settings.Mode == NavMode.Equatorial)) {
-            Settings.Mode = NavMode.Equatorial;
+        if(ImGui.MenuItem("Equatorial", "", settings.Mode == NavMode.Equatorial)) {
+            settings.Mode = NavMode.Equatorial;
         }
 
-        if(ImGui.MenuItem("Az / Alt", "", Settings.Mode == NavMode.AzAlt)) {
-            Settings.Mode = NavMode.AzAlt;
+        if(ImGui.MenuItem("Az / Alt", "", settings.Mode == NavMode.AzAlt)) {
+            settings.Mode = NavMode.AzAlt;
         }
 
         ImGui.Separator();
 
-        ImGui.Checkbox("Ignore Zoom", ref Settings.IgnoreZoom);
+        ImGui.Checkbox("Ignore Zoom", ref settings.IgnoreZoom);
 
-        if(!Settings.IgnoreZoom) {
+        if(!settings.IgnoreZoom) {
             ImGui.SliderFloat(
                 "Sphere Size",
-                ref Settings.FixedSphereSize,
+                ref settings.FixedSphereSize,
                 0f,
                 200.0f
             );
@@ -40,12 +55,12 @@ public class NavHudModEntryPoint {
 
         ImGui.Separator();
 
-        ImGui.Checkbox("Show Grid Lines", ref Settings.ShowGridLines);
-        ImGui.Checkbox("Show Attitude Marker", ref Settings.ShowAttitudeMarker);
+        ImGui.Checkbox("Show Grid Lines", ref settings.ShowGridLines);
+        ImGui.Checkbox("Show Attitude Marker", ref settings.ShowAttitudeMarker);
     }
 
     [StarMapAfterGui]
-    public void OnAfterUi(double dt) {
-        Renderer.Draw(dt);
+    public static void OnAfterUi(double dt) {
+        Renderer.Draw(dt, NavHudSettingsStore.Current);
     }
 }

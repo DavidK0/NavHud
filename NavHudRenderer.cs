@@ -9,9 +9,7 @@ public sealed class NavHudRenderer {
     private readonly AttitudeIndicatorRenderer attitudeRenderer;
     private readonly List<IHudIndicator> indicators;
 
-    public NavHudRenderer(NavHudSettings settings) {
-        this.settings = settings;
-
+    public NavHudRenderer() {
         IHudLineRenderer lines = new GizmoHudLineRenderer();
 
         var symbolRenderer = new HudSymbolRenderer(lines);
@@ -25,11 +23,11 @@ public sealed class NavHudRenderer {
         indicators = new List<IHudIndicator> {
         attitudeRenderer,
         orbitalVectorIndicators,
-        // target, docking, etc. later.
-    };
+            // target, docking, etc. later.
+        };
     }
 
-    public void Draw(double dt) {
+    public void Draw(double dt, NavHudSettings settings ) {
         if(settings.Mode == NavMode.Off) return;
 
         Vehicle vehicle = Program.ControlledVehicle;
@@ -39,7 +37,7 @@ public sealed class NavHudRenderer {
             return;
         }
 
-        DrawGrid(frame);
+        DrawGrid(frame, settings);
 
         foreach(IHudIndicator indicator in indicators) {
             if(indicator.IsEnabled(settings)) {
@@ -48,7 +46,7 @@ public sealed class NavHudRenderer {
         }
     }
 
-    private void DrawGrid(NavHudFrame frame) {
+    private void DrawGrid(NavHudFrame frame, NavHudSettings settings) {
         if(!settings.ShowGridLines) return;
 
         switch(settings.Mode) {
