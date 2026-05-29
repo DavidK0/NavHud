@@ -76,14 +76,19 @@ namespace NavHud {
             double3 normalCci = HudMath.Cross(positionCci, velocityCci);
             if(HudMath.IsZero(normalCci)) return;
 
+            double3 radialInCci = HudMath.Cross(normalCci, velocityCci);
+            if(HudMath.IsZero(radialInCci)) return;
+
+            double3 radialOutCci = -radialInCci;
+
             DrawDirection(frame, velocityCci, settings.Prograde);
             DrawDirection(frame, -velocityCci, settings.Retrograde);
 
             DrawDirection(frame, normalCci, settings.Normal);
             DrawDirection(frame, -normalCci, settings.Antinormal);
 
-            DrawDirection(frame, positionCci, settings.RadialOut);
-            DrawDirection(frame, -positionCci, settings.RadialIn);
+            DrawDirection(frame, radialOutCci, settings.RadialOut);
+            DrawDirection(frame, radialInCci, settings.RadialIn);
         }
 
         private void DrawDirection(
