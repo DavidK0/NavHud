@@ -7,20 +7,20 @@ namespace NavHud;
 internal sealed class SaveScopedSettingsStore<TSettings> {
     private readonly Dictionary<string, TSettings> _bySaveId = new();
 
-    private readonly string _configPath;
-    private readonly string _modDir;
+    private readonly string _fileName;
+    private readonly string _savesDir;
     private readonly Func<TSettings> _createDefault;
     private readonly Func<SettingsBlock, TSettings> _readBlock;
     private readonly Action<SettingsBlockWriter, string, TSettings> _writeBlock;
 
     public SaveScopedSettingsStore(
-        string modDir,
+        string savesDir,
         string fileName,
         Func<TSettings> createDefault,
         Func<SettingsBlock, TSettings> readBlock,
         Action<SettingsBlockWriter, string, TSettings> writeBlock) {
-        _modDir = modDir;
-        _configPath = Path.Combine(modDir, fileName);
+        _savesDir = savesDir;
+        _fileName = fileName;
         _createDefault = createDefault;
         _readBlock = readBlock;
         _writeBlock = writeBlock;
@@ -53,38 +53,55 @@ internal sealed class SaveScopedSettingsStore<TSettings> {
     public void Load() {
         _bySaveId.Clear();
 
-        if(!File.Exists(_configPath))
+        if(!Directory.Exists(_savesDir))
             return;
 
-        foreach(SettingsBlock block in SettingsBlockFile.Read(_configPath)) {
-            if(string.IsNullOrEmpty(block.SaveId))
+        foreach(string saveDir in Directory.EnumerateDirectories(_savesDir)) {
+            string saveId = Path.GetFileName(saveDir);
+            if(string.IsNullOrEmpty(saveId))
                 continue;
 
-            _bySaveId[block.SaveId] = _readBlock(block);
+            string configPath = GetConfigPath(saveId);
+            if(!File.Exists(configPath))
+                continue;
+
+            foreach(SettingsBlock block in SettingsBlockFile.Read(configPath)) {
+                // Since the file is now already scoped to a save directory,
+                // prefer the directory saveId. This also tolerates old/missing SaveId values.
+                _bySaveId[saveId] = _readBlock(block);
+                break;
+            }
         }
     }
 
     public void Save() {
-        if(!HasPersistableSettings() && !File.Exists(_configPath))
-            return;
+        foreach(var pair in _bySaveId) {
+            string saveId = pair.Key;
 
-        string tempPath = _configPath + ".tmp";
+            if(string.IsNullOrEmpty(saveId))
+                continue;
+
+            SaveOne(saveId, pair.Value);
+        }
+    }
+
+    private void SaveOne(string saveId, TSettings settings) {
+        string configPath = GetConfigPath(saveId);
+        string saveDir = Path.GetDirectoryName(configPath)!;
+        string tempPath = configPath + ".tmp";
 
         try {
-            Directory.CreateDirectory(_modDir);
+            Directory.CreateDirectory(saveDir);
 
             using(var writer = new StreamWriter(tempPath)) {
                 var blockWriter = new SettingsBlockWriter(writer);
 
-                foreach(var pair in _bySaveId) {
-                    if(string.IsNullOrEmpty(pair.Key))
-                        continue;
-
-                    _writeBlock(blockWriter, pair.Key, pair.Value);
-                }
+                // Keep writing the saveId into the block if your existing parser/writer format expects it.
+                // Even though the file is now save-scoped, this preserves compatibility.
+                _writeBlock(blockWriter, saveId, settings);
             }
 
-            File.Move(tempPath, _configPath, overwrite: true);
+            File.Move(tempPath, configPath, overwrite: true);
         } catch {
             if(File.Exists(tempPath))
                 File.Delete(tempPath);
@@ -93,21 +110,16 @@ internal sealed class SaveScopedSettingsStore<TSettings> {
         }
     }
 
-    private bool HasPersistableSettings() {
-        foreach(string saveId in _bySaveId.Keys) {
-            if(!string.IsNullOrEmpty(saveId))
-                return true;
-        }
-
-        return false;
+    private string GetConfigPath(string saveId) {
+        return Path.Combine(_savesDir, saveId, _fileName);
     }
+
     public void Set(string saveId, TSettings settings) {
         if(string.IsNullOrEmpty(saveId))
             return;
 
         _bySaveId[saveId] = settings;
     }
-
 }
 
 internal sealed class SettingsBlock {

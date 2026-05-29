@@ -138,16 +138,15 @@ internal static class NavHudSettingsStore {
     public static void Init() {
         string userDocs = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
 
-        string modDir = Path.Combine(
+        string savesDir = Path.Combine(
             userDocs,
             "My Games",
             "Kitten Space Agency",
-            "mods",
-            "NavHud");
+            "saves");
 
         _store = new SaveScopedSettingsStore<NavHudSettings>(
-            modDir,
-            "settings.toml",
+            savesDir,
+            "NavHud_settings.toml",
             () => new NavHudSettings(),
             NavHudSettingsToml.Read,
             NavHudSettingsToml.Write);
