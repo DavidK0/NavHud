@@ -1,29 +1,48 @@
 ﻿
+using Brutal.ImGuiApi;
+using Brutal.Numerics;
 using KSA;
 
 namespace NavHud;
 
-public sealed class NavHudRenderer {
+public unsafe sealed class NavHudRenderer {
     private readonly NavHudSettings settings;
     private readonly GridRenderer gridRenderer;
-    private readonly AttitudeIndicatorRenderer attitudeRenderer;
+    private readonly ImDrawLineRenderer lines;
     private readonly List<IHudIndicator> indicators;
 
     public NavHudRenderer() {
-        IHudLineRenderer lines = new GizmoHudLineRenderer();
+        //IHudLineRenderer lines = new GizmoHudLineRenderer();
+        lines = new ImDrawLineRenderer();
+        
 
         var symbolRenderer = new HudSymbolRenderer(lines);
         var vectorRenderer = new VectorIndicatorRenderer(symbolRenderer);
 
         gridRenderer = new GridRenderer(lines);
-        attitudeRenderer = new AttitudeIndicatorRenderer(lines);
 
-        var orbitalVectorIndicators = new OrbitalVectorIndicatorRenderer(vectorRenderer);
+
+        IHudIndicator attitdueIndicatorRenderer = new AttitudeIndicatorRenderer(vectorRenderer);
+        IHudIndicator antiattitudeIndicatorRenderer = new AntiattitudeIndicatorRenderer(vectorRenderer);
+        IHudIndicator progradeIndicatorRenderer = new ProgradeIndicatorRenderer(vectorRenderer);
+        IHudIndicator retrogradeIndicatorRenderer = new RetrogradeIndicatorRenderer(vectorRenderer);
+        IHudIndicator normalIndicatorRenderer = new NormalIndicatorRenderer(vectorRenderer);
+        IHudIndicator antinormalIndicatorRenderer = new AntinormalIndicatorRenderer(vectorRenderer);
+        IHudIndicator radialInIndicatorRenderer = new RadialInIndicatorRenderer(vectorRenderer);
+        IHudIndicator radialOutIndicatorRenderer = new RadialOutIndicatorRenderer(vectorRenderer);
+        IHudIndicator targetIndicatorRenderer = new TargetIndicatorRenderer(vectorRenderer);
 
         indicators = new List<IHudIndicator> {
-        attitudeRenderer,
-        orbitalVectorIndicators,
-            // target, docking, etc. later.
+            attitdueIndicatorRenderer,
+            antiattitudeIndicatorRenderer,
+            progradeIndicatorRenderer,
+            retrogradeIndicatorRenderer,
+            normalIndicatorRenderer,
+            antinormalIndicatorRenderer,
+            radialInIndicatorRenderer,
+            radialOutIndicatorRenderer,
+            targetIndicatorRenderer
+            // docking, etc. later.
         };
     }
 
@@ -37,25 +56,47 @@ public sealed class NavHudRenderer {
             return;
         }
 
-        DrawGrid(frame, settings);
+        // CREATE WINDOW
+        ImGuiViewport* viewport = ImGui.GetMainViewport();
+        float2 center = new float2(viewport->Pos.X + viewport->Size.X * 0.5f, viewport->Pos.Y + viewport->Size.Y * 0.5f);
+        float2 window_size = viewport->Size;
+        ImGui.SetNextWindowPos(viewport->Pos);
+        ImGui.SetNextWindowSize(window_size);
+        ImGui.SetNextWindowViewport(viewport->ID);
+        ImGuiWindowFlags flags =
+            ImGuiWindowFlags.NoTitleBar |
+            ImGuiWindowFlags.NoResize |
+            ImGuiWindowFlags.NoMove |
+            ImGuiWindowFlags.NoCollapse |
+            ImGuiWindowFlags.NoBringToFrontOnFocus |
+            ImGuiWindowFlags.NoBackground |
+            ImGuiWindowFlags.NoFocusOnAppearing |
+            ImGuiWindowFlags.NoInputs |
+            ImGuiWindowFlags.NoNavFocus;
+        ImGui.Begin("HUDFullscreenWindow", flags);
+        ImDrawListPtr draw_list = ImGui.GetWindowDrawList();
+
+        DrawGrid(draw_list, frame, settings);
 
         foreach(IHudIndicator indicator in indicators) {
             if(indicator.IsEnabled(settings)) {
-                indicator.Draw(frame, settings);
+                indicator.Draw(draw_list, frame, settings);
             }
         }
+
+        ImGui.End();
     }
 
-    private void DrawGrid(NavHudFrame frame, NavHudSettings settings) {
+    private void DrawGrid(ImDrawListPtr draw_list, NavHudFrame frame, NavHudSettings settings) {
         if(!settings.ShowGridLines) return;
 
         switch(settings.Mode) {
             case NavMode.Equatorial:
-                gridRenderer.DrawEquatorial(frame, settings.Grid);
+                gridRenderer.DrawEquatorial(draw_list, frame, settings.Grid);
                 break;
 
             case NavMode.AzAlt:
-                gridRenderer.DrawAzAlt(frame, settings.Grid);
+                gridRenderer.DrawAzAlt(draw_list, frame, settings.Grid);
                 break;
         }
     }

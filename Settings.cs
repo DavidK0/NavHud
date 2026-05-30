@@ -13,18 +13,22 @@ public sealed class NavHudSettings {
     public float ZoomScale = 100.0f;
 
     public bool ShowGridLines = true;
-    public bool ShowAttitudeMarker = true;
 
+    public float SymbolSize = 0.03f;
+    public float SymbolLineThickness = 2.0f;
+
+    public IndicatorSettings Attitude = new(HudSymbol.Attitude, new float4(1.0f, 1.0f, 1.0f, 1.0f)); // White
+    public IndicatorSettings Antiattitude = new(HudSymbol.Antiattitude, new float4(1.0f, 1.0f, 1.0f, 1.0f)); // White
     public IndicatorSettings Prograde = new(HudSymbol.Prograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
     public IndicatorSettings Retrograde = new(HudSymbol.Retrograde, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Yellow
     public IndicatorSettings Normal = new(HudSymbol.Normal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
     public IndicatorSettings Antinormal = new(HudSymbol.Antinormal, new float4(1.0f, 0.0f, 1.0f, 1.0f)); // Magenta
     public IndicatorSettings RadialIn = new(HudSymbol.RadialIn, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
     public IndicatorSettings RadialOut = new(HudSymbol.RadialOut, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
-    public IndicatorSettings Target = new(HudSymbol.Target, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
-    public IndicatorSettings Antitarget = new(HudSymbol.Antitarget, new float4(1.0f, 1.0f, 0.0f, 1.0f)); // Cyan
-    public IndicatorSettings DockingAlignment = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
-    public IndicatorSettings Maneuver = new(HudSymbol.Target, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
+    public IndicatorSettings Target = new(HudSymbol.Target, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
+    public IndicatorSettings Antitarget = new(HudSymbol.Antitarget, new float4(0.0f, 1.0f, 1.0f, 1.0f)); // Cyan
+    public IndicatorSettings DockingAlignment = new(HudSymbol.DockingAlignment, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
+    public IndicatorSettings Maneuver = new(HudSymbol.Maneuver, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
 
     public GridSettings Grid = new();
 
@@ -36,7 +40,9 @@ public sealed class NavHudSettings {
             ZoomScale = ZoomScale,
 
             ShowGridLines = ShowGridLines,
-            ShowAttitudeMarker = ShowAttitudeMarker,
+
+            SymbolSize = SymbolSize,
+            SymbolLineThickness = SymbolLineThickness,
 
             Grid = Grid.Clone(),
 
@@ -175,9 +181,9 @@ internal static class NavHudSettingsToml {
         s.ZoomScale = block.GetFloat("zoom_scale", s.ZoomScale);
 
         s.ShowGridLines = block.GetBool("show_grid_lines", s.ShowGridLines);
-        s.ShowAttitudeMarker = block.GetBool(
-            "show_attitude_marker",
-            s.ShowAttitudeMarker);
+
+        s.SymbolSize = block.GetFloat("symbol_size", s.SymbolSize);
+        s.SymbolLineThickness = block.GetFloat("symbol_line_thickness", s.SymbolLineThickness);
 
         ReadIndicator(block, "prograde", s.Prograde);
         ReadIndicator(block, "retrograde", s.Retrograde);
@@ -219,7 +225,9 @@ internal static class NavHudSettingsToml {
         writer.Write("zoom_scale", s.ZoomScale);
 
         writer.Write("show_grid_lines", s.ShowGridLines);
-        writer.Write("show_attitude_marker", s.ShowAttitudeMarker);
+
+        writer.Write("symbol_size", s.SymbolSize);
+        writer.Write("symbol_line_thickness", s.SymbolLineThickness);
 
         WriteIndicator(writer, "prograde", s.Prograde);
         WriteIndicator(writer, "retrograde", s.Retrograde);

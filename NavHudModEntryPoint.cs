@@ -53,10 +53,27 @@ public class NavHudModEntryPoint {
             );
         }
 
-        ImGui.Separator();
-
         ImGui.Checkbox("Show Grid Lines", ref settings.ShowGridLines);
-        ImGui.Checkbox("Show Attitude Marker", ref settings.ShowAttitudeMarker);
+
+        // Add a checkbox for showing symbols.
+        // If symbols are shown, add drop down menu which has: slider for symbol line thickness, and checkbox for showing arrows to symbols
+        if(ImGui.BeginMenu("Symbols")) {
+            //ImGui.Checkbox("Show Symbols", ref settings.ShowSymbols);
+            ImGui.SliderFloat(
+                "Symbol Line Thickness",
+                ref settings.SymbolLineThickness,
+                1f,
+                15.0f
+            );
+            ImGui.SliderFloat(
+                "Symbol Size",
+                ref settings.SymbolSize,
+                .01f,
+                .3f
+            );
+            //ImGui.Checkbox("Show Arrows To Symbols", ref settings.ShowArrowsToSymbols);
+            ImGui.EndMenu();
+        }
     }
 
     [StarMapAfterGui]

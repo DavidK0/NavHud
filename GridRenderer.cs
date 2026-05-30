@@ -1,4 +1,5 @@
-﻿using Brutal.Numerics;
+﻿using Brutal.ImGuiApi;
+using Brutal.Numerics;
 
 namespace NavHud;
 
@@ -9,8 +10,9 @@ public sealed class GridRenderer {
         this.lines = lines;
     }
 
-    public void DrawEquatorial(NavHudFrame frame, GridSettings settings) {
+    public void DrawEquatorial(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
         DrawWireSphere(
+            draw_list: draw_list,
             center: frame.CenterEgo,
             radius: frame.Radius,
             segments: settings.Segments,
@@ -19,12 +21,13 @@ public sealed class GridRenderer {
         );
     }
 
-    public void DrawAzAlt(NavHudFrame frame, GridSettings settings) {
+    public void DrawAzAlt(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
         if(frame.EastEgo is not { } east) return;
         if(frame.NorthEgo is not { } north) return;
         if(frame.UpEgo is not { } up) return;
 
         DrawAzAltWireSphere(
+            draw_list: draw_list,
             center: frame.CenterEgo,
             radius: frame.Radius,
             azSegments: settings.Segments,
@@ -37,6 +40,7 @@ public sealed class GridRenderer {
     }
 
     private void DrawWireSphere(
+        ImDrawListPtr draw_list,
         float3 center,
         float radius,
         int segments,
@@ -69,7 +73,7 @@ public sealed class GridRenderer {
                     MathF.Sin(a1) * ringRadius
                 );
 
-                lines.Line(p0, p1, color);
+                lines.Line(draw_list, p0, p1, color);
             }
         }
 
@@ -95,12 +99,13 @@ public sealed class GridRenderer {
                     MathF.Sin(theta1) * MathF.Sin(phi) * radius
                 );
 
-                lines.Line(p0, p1, color);
+                lines.Line(draw_list, p0, p1, color);
             }
         }
     }
 
     private void DrawAzAltWireSphere(
+        ImDrawListPtr draw_list,
         float3 center,
         float radius,
         int azSegments,
@@ -140,7 +145,7 @@ public sealed class GridRenderer {
                     up
                 );
 
-                lines.Line(p0, p1, color);
+                lines.Line(draw_list, p0, p1, color);
             }
         }
 
@@ -172,7 +177,7 @@ public sealed class GridRenderer {
                     up
                 );
 
-                lines.Line(p0, p1, color);
+                lines.Line(draw_list, p0, p1, color);
             }
         }
     }
