@@ -43,7 +43,7 @@ public static class NavHudFrameBuilder {
             : settings.FixedSphereSize;
 
         NavFrame resolvedMode;
-        if(settings.Mode == NavFrame.Auto) {
+        if(settings.GridFrame == NavFrame.Auto) {
             switch(vehicle.VehicleRegion) {
                 case VehicleRegion.Surface:
                     resolvedMode = NavFrame.Enu;
@@ -59,7 +59,7 @@ public static class NavHudFrameBuilder {
                     break;
             }
         } else {
-            resolvedMode = settings.Mode;
+            resolvedMode = settings.GridFrame;
         }
 
         SetBasisForMode(

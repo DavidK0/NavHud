@@ -8,7 +8,8 @@ namespace NavHud;
 public sealed class NavHudSettings {
     public bool Enabled = true;
 
-    public NavFrame Mode = NavFrame.Auto;
+    public NavFrame GridFrame = NavFrame.Auto;
+    public NavFrame VelocityFrame = NavFrame.Auto;
 
     public bool IgnoreZoom = true;
     public float FixedSphereSize = 10.0f;
@@ -37,7 +38,7 @@ public sealed class NavHudSettings {
     public NavHudSettings Clone() {
         return new NavHudSettings {
             Enabled = Enabled,
-            Mode = Mode,
+            GridFrame = GridFrame,
             IgnoreZoom = IgnoreZoom,
             FixedSphereSize = FixedSphereSize,
             ZoomScale = ZoomScale,
@@ -190,7 +191,7 @@ internal static class NavHudSettingsToml {
         s.Enabled = block.GetBool("enabled", s.Enabled);
 
         if(block.TryEnum("mode", out NavFrame mode))
-            s.Mode = mode;
+            s.GridFrame = mode;
 
         s.IgnoreZoom = block.GetBool("ignore_zoom", s.IgnoreZoom);
         s.FixedSphereSize = block.GetFloat("fixed_sphere_size", s.FixedSphereSize);
@@ -236,7 +237,7 @@ internal static class NavHudSettingsToml {
 
         writer.BeginSettingsBlock(saveId);
 
-        writer.Write("mode", s.Mode);
+        writer.Write("mode", s.GridFrame);
 
         writer.Write("ignore_zoom", s.IgnoreZoom);
         writer.Write("fixed_sphere_size", s.FixedSphereSize);

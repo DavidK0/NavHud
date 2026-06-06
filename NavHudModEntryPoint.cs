@@ -28,36 +28,7 @@ public class NavHudModEntryPoint {
     public static void DrawMenu() {
         NavHudSettings settings = NavHudSettingsStore.Current;
 
-        if(ImGui.Checkbox("Enabled", ref settings.Enabled)) {
-            settings.Enabled = !settings.Enabled;
-        }
-
-        if(ImGui.BeginMenu("Grid Orientation")) {
-
-            if(ImGui.MenuItem("Auto", "", settings.Mode == NavFrame.Auto)) {
-                settings.Mode = NavFrame.Auto;
-            }
-
-            if(ImGui.MenuItem("Star", "", settings.Mode == NavFrame.Cce)) {
-                settings.Mode = NavFrame.Cce;
-            }
-
-            if(ImGui.MenuItem("Equatorial", "", settings.Mode == NavFrame.Cci)) {
-                settings.Mode = NavFrame.Cci;
-            }
-
-            if(ImGui.MenuItem("Surface", "", settings.Mode == NavFrame.Enu)) {
-                settings.Mode = NavFrame.Enu;
-            }
-
-            if(ImGui.MenuItem("Orbit", "", settings.Mode == NavFrame.Lvlh)) {
-                settings.Mode = NavFrame.Lvlh;
-            }
-
-            ImGui.EndMenu();
-        }
-
-        ImGui.Separator();
+        ImGui.Checkbox("Enabled", ref settings.Enabled);
 
         ImGui.Checkbox("Ignore Zoom", ref settings.IgnoreZoom);
 
@@ -70,7 +41,59 @@ public class NavHudModEntryPoint {
             );
         }
 
+        ImGui.Separator();
+
         ImGui.Checkbox("Show Grid Lines", ref settings.ShowGridLines);
+
+        if(ImGui.BeginMenu("Grid Orientation")) {
+
+            if(ImGui.MenuItem("Auto", "", settings.GridFrame == NavFrame.Auto)) {
+                settings.GridFrame = NavFrame.Auto;
+            }
+
+            if(ImGui.MenuItem("Star", "", settings.GridFrame == NavFrame.Cce)) {
+                settings.GridFrame = NavFrame.Cce;
+            }
+
+            if(ImGui.MenuItem("Equatorial", "", settings.GridFrame == NavFrame.Cci)) {
+                settings.GridFrame = NavFrame.Cci;
+            }
+
+            if(ImGui.MenuItem("Surface", "", settings.GridFrame == NavFrame.Enu)) {
+                settings.GridFrame = NavFrame.Enu;
+            }
+
+            if(ImGui.MenuItem("Orbit", "", settings.GridFrame == NavFrame.Lvlh)) {
+                settings.GridFrame = NavFrame.Lvlh;
+            }
+
+            ImGui.EndMenu();
+        }
+
+        ImGui.Separator();
+
+
+        if(ImGui.BeginMenu("Velocity Mode")) {
+
+            if(ImGui.MenuItem("Auto", "", settings.VelocityFrame == NavFrame.Auto)) {
+                settings.VelocityFrame = NavFrame.Auto;
+            }
+
+            if(ImGui.MenuItem("Surface", "", settings.VelocityFrame == NavFrame.Cce)) {
+                settings.VelocityFrame = NavFrame.Cce;
+            }
+
+            if(ImGui.MenuItem("Orbit", "", settings.VelocityFrame == NavFrame.Cci)) {
+                settings.VelocityFrame = NavFrame.Cci;
+            }
+
+            if(ImGui.MenuItem("Target", "", settings.VelocityFrame == NavFrame.Enu)) {
+                settings.VelocityFrame = NavFrame.Enu;
+            }
+
+            ImGui.EndMenu();
+        }
+
 
         // Add a checkbox for showing symbols.
         // If symbols are shown, add drop down menu which has: slider for symbol line thickness, and checkbox for showing arrows to symbols
@@ -96,10 +119,10 @@ public class NavHudModEntryPoint {
     [StarMapAfterGui]
     public static void OnAfterUi(double dt) {
         // If the vehicle doesn't have a target and the current mode is a target-relative mode, change the mode to auto
-        if(NavHudSettingsStore.Current.Mode is NavFrame.Tgt or NavFrame.TVel or NavFrame.Dock) {
+        if(NavHudSettingsStore.Current.GridFrame is NavFrame.Tgt or NavFrame.TVel or NavFrame.Dock) {
             IOrbiter? target = Program.ControlledVehicle.Target;
             if(target == null) {
-                NavHudSettingsStore.Current.Mode = NavFrame.Auto;
+                NavHudSettingsStore.Current.GridFrame = NavFrame.Auto;
             }
         }
 
