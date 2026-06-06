@@ -157,15 +157,15 @@ namespace NavHud {
             out float3 right,
             out float3 up
         ) {
-            float3 n = HudMath.Normalize(normal);
+            float3 n = VectorMath.Normalize(normal);
 
             // Pick a stable fallback axis that is not parallel to n.
             float3 worldUp = MathF.Abs(n.Y) < 0.9f
                 ? new float3(0.0f, 1.0f, 0.0f)
                 : new float3(1.0f, 0.0f, 0.0f);
 
-            right = HudMath.Normalize(Cross(worldUp, n));
-            up = HudMath.Normalize(Cross(n, right));
+            right = VectorMath.Normalize(VectorMath.Cross(worldUp, n));
+            up = VectorMath.Normalize(VectorMath.Cross(n, right));
         }
 
         private static float3 Cross(float3 a, float3 b) {
@@ -190,8 +190,8 @@ namespace NavHud {
             float notchHalfWidth = size * 0.15f;
             float notchDepth = size * 0.75f;
 
-            right = HudMath.Normalize(right);
-            up = HudMath.Normalize(up);
+            right = VectorMath.Normalize(right);
+            up = VectorMath.Normalize(up);
 
             float c = MathF.Cos(rollRadians);
             float s = MathF.Sin(rollRadians);
@@ -228,8 +228,8 @@ namespace NavHud {
             float notchHalfWidth = size * 0.15f;
             float notchDepth = size * 0.75f;
 
-            right = HudMath.Normalize(right);
-            up = HudMath.Normalize(up);
+            right = VectorMath.Normalize(right);
+            up = VectorMath.Normalize(up);
 
             float c = MathF.Cos(rollRadians);
             float s = MathF.Sin(rollRadians);
@@ -290,8 +290,8 @@ namespace NavHud {
 
             lines.Line(draw_list, center + up * r, center + up * size * 1.55f, color, thickness);
 
-            float3 downLeft = HudMath.Normalize(-right - up * 0.65f);
-            float3 downRight = HudMath.Normalize(right - up * 0.65f);
+            float3 downLeft = VectorMath.Normalize(-right - up * 0.65f);
+            float3 downRight = VectorMath.Normalize(right - up * 0.65f);
 
             lines.Line(draw_list, center + downLeft * r, center + downLeft * size * 1.55f, color, thickness);
             lines.Line(draw_list, center + downRight * r, center + downRight * size * 1.55f, color, thickness);
@@ -344,8 +344,8 @@ namespace NavHud {
 
             lines.Line(draw_list, center + up * h * 0.75f, center + up * size * 1.55f, color, thickness);
 
-            float3 downLeft = HudMath.Normalize(-right - up * 0.60f);
-            float3 downRight = HudMath.Normalize(right - up * 0.60f);
+            float3 downLeft = VectorMath.Normalize(-right - up * 0.60f);
+            float3 downRight = VectorMath.Normalize(right - up * 0.60f);
 
             lines.Line(draw_list, center + downLeft * size * 0.95f, center + downLeft * size * 1.55f, color, thickness);
             lines.Line(draw_list, center + downRight * size * 0.95f, center + downRight * size * 1.55f, color, thickness);
@@ -424,8 +424,8 @@ namespace NavHud {
             DrawCircle(draw_list, center, right, up, r, color, 12, thickness);
             DrawXInside(draw_list, center, right, up, size * 0.58f, color, thickness);
 
-            float3 a = HudMath.Normalize(right + up);
-            float3 b = HudMath.Normalize(right - up);
+            float3 a = VectorMath.Normalize(right + up);
+            float3 b = VectorMath.Normalize(right - up);
 
             lines.Line(draw_list, center + a * r, center + a * size * 1.45f, color, thickness);
             lines.Line(draw_list, center - a * r, center - a * size * 1.45f, color, thickness);
@@ -452,8 +452,8 @@ namespace NavHud {
             lines.Line(draw_list, center + right * inner, center + right * outer, color, thickness);
             lines.Line(draw_list, center - right * inner, center - right * outer, color, thickness);
 
-            float3 a = HudMath.Normalize(right + up);
-            float3 b = HudMath.Normalize(right - up);
+            float3 a = VectorMath.Normalize(right + up);
+            float3 b = VectorMath.Normalize(right - up);
 
             lines.Line(draw_list, center + a * inner, center + a * outer, color, thickness);
             lines.Line(draw_list, center - a * inner, center - a * outer, color, thickness);
@@ -508,8 +508,8 @@ namespace NavHud {
             float4 color,
             float thickness
         ) {
-            float3 a = HudMath.Normalize(right + up);
-            float3 b = HudMath.Normalize(right - up);
+            float3 a = VectorMath.Normalize(right + up);
+            float3 b = VectorMath.Normalize(right - up);
 
             lines.Line(draw_list, center - a * size, center + a * size, color, thickness);
             lines.Line(draw_list, center - b * size, center + b * size, color, thickness);
@@ -526,7 +526,7 @@ namespace NavHud {
             float4 color,
             float thickness
         ) {
-            float3 cornerDir = HudMath.Normalize(right * sx + up * sy);
+            float3 cornerDir = VectorMath.Normalize(right * sx + up * sy);
 
             float3 outer = center + cornerDir * size * 0.78f;
             float3 inner = center + cornerDir * size * 0.43f;
@@ -545,7 +545,7 @@ namespace NavHud {
             float4 color,
             float thickness
         ) {
-            float3 cornerDir = HudMath.Normalize(right * sx + up * sy);
+            float3 cornerDir = VectorMath.Normalize(right * sx + up * sy);
 
             float3 inner = center + cornerDir * size * 0.82f;
             float3 outer = center + cornerDir * size * 1.28f;
@@ -576,7 +576,8 @@ public sealed class AttitudeIndicatorRenderer : IHudIndicator {
         if(frame.BodyForwardEgo is not { } forward) return;
         if(frame.Vehicle is not { } vehicle) return;
 
-        float rollRadians = (float)HudMath.GetSurfaceAttitude(vehicle).X;
+        if(!HudBasis.TryGetSurfaceAttitude(vehicle, out double3 attitude)) return;
+        float rollRadians = (float)attitude.X;
 
         vectorRenderer.DrawMarker(
             draw_list,
@@ -605,8 +606,8 @@ public sealed class AntiattitudeIndicatorRenderer : IHudIndicator {
         if(!settings.Antiattitude.Enabled) return;
         if(frame.BodyForwardEgo is not { } forward) return;
         if(frame.Vehicle is not { } vehicle) return;
-
-        float rollRadians = (float)HudMath.GetSurfaceAttitude(vehicle).X;
+        if(!HudBasis.TryGetSurfaceAttitude(vehicle, out double3 attitude)) return;
+        float rollRadians = (float)attitude.X;
 
         vectorRenderer.DrawMarker(
             draw_list,
@@ -635,12 +636,13 @@ public sealed class  ProgradeIndicatorRenderer : IHudIndicator {
     public void Draw(ImDrawListPtr draw_list, NavHudFrame frame, NavHudSettings settings) {
         if(!settings.Prograde.Enabled) return;
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            frame.Vehicle.GetVelocityCci()
-        );
+            frame.Vehicle.GetVelocityCci(),
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.Prograde, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -660,12 +662,13 @@ public sealed class RetrogradeIndicatorRenderer : IHudIndicator {
     public void Draw(ImDrawListPtr draw_list, NavHudFrame frame, NavHudSettings settings) {
         if(!settings.Retrograde.Enabled) return;
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            -frame.Vehicle.GetVelocityCci()
-        );
+            -frame.Vehicle.GetVelocityCci(),
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.Retrograde, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -689,15 +692,16 @@ public sealed class NormalIndicatorRenderer : IHudIndicator {
         Vehicle vehicle = frame.Vehicle;
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
-        double3 normalCci = HudMath.Cross(positionCci, velocityCci);
+        double3 normalCci = VectorMath.Cross(positionCci, velocityCci);
 
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            normalCci
-        );
+            normalCci,
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.Normal, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -720,15 +724,16 @@ public sealed class AntinormalIndicatorRenderer : IHudIndicator {
         Vehicle vehicle = frame.Vehicle;
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
-        double3 normalCci = HudMath.Cross(positionCci, velocityCci);
+        double3 normalCci = VectorMath.Cross(positionCci, velocityCci);
 
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            -normalCci
-        );
+            -normalCci,
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.Antinormal, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -752,16 +757,17 @@ public sealed class RadialInIndicatorRenderer : IHudIndicator {
         Vehicle vehicle = frame.Vehicle;
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
-        double3 normalCci = HudMath.Cross(positionCci, velocityCci);
-        double3 radialInCci = HudMath.Cross(normalCci, velocityCci);
+        double3 normalCci = VectorMath.Cross(positionCci, velocityCci);
+        double3 radialInCci = VectorMath.Cross(normalCci, velocityCci);
 
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            radialInCci
-        );
+            radialInCci,
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.RadialIn, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -785,16 +791,17 @@ public sealed class RadialOutIndicatorRenderer : IHudIndicator {
         Vehicle vehicle = frame.Vehicle;
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
-        double3 normalCci = HudMath.Cross(positionCci, velocityCci);
-        double3 radialInCci = HudMath.Cross(normalCci, velocityCci);
+        double3 normalCci = VectorMath.Cross(positionCci, velocityCci);
+        double3 radialInCci = VectorMath.Cross(normalCci, velocityCci);
 
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            -radialInCci
-        );
+            -radialInCci,
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.RadialOut, settings.SymbolSize, settings.SymbolLineThickness);
     }
@@ -821,12 +828,13 @@ public sealed class TargetIndicatorRenderer : IHudIndicator {
         double3 toPositionCci = target.GetPositionCci();
         double3 directionCci = toPositionCci - fromPositionCci;
 
-        float3 direction = HudMath.CciDirectionToEgo(
+        if(!EgoTransform.TryCciDirectionToEgo(
             frame.Vehicle,
             frame.Camera,
             frame.Celestial,
-            directionCci
-        );
+            directionCci,
+            out float3 direction
+        )) return;
 
         vectorRenderer.DrawMarker(draw_list, frame, direction, settings.Target, settings.SymbolSize, settings.SymbolLineThickness);
     }

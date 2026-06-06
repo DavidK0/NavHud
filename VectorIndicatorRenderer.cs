@@ -25,8 +25,8 @@ namespace NavHud {
         ) {
             if(!settings.Enabled) return;
 
-            float3 dir = HudMath.Normalize(directionEgo);
-            if(HudMath.IsZero(dir)) return;
+            float3 dir = VectorMath.Normalize(directionEgo);
+            if(VectorMath.IsZero(dir)) return;
 
             float3 position = frame.CenterEgo + dir * frame.Radius;
 
