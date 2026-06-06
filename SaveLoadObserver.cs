@@ -1,5 +1,4 @@
-﻿using System;
-using Brutal.Logging;
+﻿using Brutal.Logging;
 using HarmonyLib;
 using KSA;
 

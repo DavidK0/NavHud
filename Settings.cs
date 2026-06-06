@@ -6,7 +6,9 @@ using Brutal.Logging;
 namespace NavHud;
 
 public sealed class NavHudSettings {
-    public NavMode Mode = NavMode.AzAlt;
+    public bool Enabled = true;
+
+    public NavMode Mode = NavMode.Auto;
 
     public bool IgnoreZoom = true;
     public float FixedSphereSize = 10.0f;
@@ -34,6 +36,7 @@ public sealed class NavHudSettings {
 
     public NavHudSettings Clone() {
         return new NavHudSettings {
+            Enabled = Enabled,
             Mode = Mode,
             IgnoreZoom = IgnoreZoom,
             FixedSphereSize = FixedSphereSize,
@@ -82,9 +85,17 @@ public sealed class IndicatorSettings {
 }
 
 public enum NavMode {
-    Off,
-    Equatorial,
-    AzAlt
+    Auto,
+
+    Cce,
+    EnuBody,
+    Lvlh,
+    VlfBody,
+    BurnBody,
+
+    Tgt,
+    TVel,
+    Dock
 }
 
 public sealed class GridSettings {
@@ -173,6 +184,8 @@ internal static class NavHudSettingsToml {
     public static NavHudSettings Read(SettingsBlock block) {
         var s = new NavHudSettings();
 
+        s.Enabled = block.GetBool("enabled", s.Enabled);
+
         if(block.TryEnum("mode", out NavMode mode))
             s.Mode = mode;
 
@@ -215,6 +228,8 @@ internal static class NavHudSettingsToml {
         SettingsBlockWriter writer,
         string saveId,
         NavHudSettings s) {
+
+        writer.Write("enabled", s.Enabled);
 
         writer.BeginSettingsBlock(saveId);
 

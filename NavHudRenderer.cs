@@ -47,7 +47,7 @@ public unsafe sealed class NavHudRenderer {
     }
 
     public void Draw(double dt, NavHudSettings settings ) {
-        if(settings.Mode == NavMode.Off) return;
+        if(!settings.Enabled) return;
 
         Vehicle vehicle = Program.ControlledVehicle;
         Camera camera = Program.GetMainCamera();
@@ -91,13 +91,52 @@ public unsafe sealed class NavHudRenderer {
         if(!settings.ShowGridLines) return;
 
         switch(settings.Mode) {
-            case NavMode.Equatorial:
+            case NavMode.Auto:
+                switch(Program.ControlledVehicle.VehicleRegion) {
+                    case VehicleRegion.Surface:
+                        gridRenderer.DrawEnu(draw_list, frame, settings.Grid);
+                        break;
+                    case VehicleRegion.LowOrbit:
+                        gridRenderer.DrawLvlh(draw_list, frame, settings.Grid);
+                        break;
+                    case VehicleRegion.HighOrbit:
+                        gridRenderer.DrawVlf(draw_list, frame, settings.Grid);
+                        break;
+                }
+                break;
+
+            case NavMode.Cce:
                 gridRenderer.DrawEquatorial(draw_list, frame, settings.Grid);
                 break;
 
-            case NavMode.AzAlt:
-                gridRenderer.DrawAzAlt(draw_list, frame, settings.Grid);
+            case NavMode.EnuBody:
+                gridRenderer.DrawEnu(draw_list, frame, settings.Grid);
                 break;
+
+            case NavMode.Lvlh:
+                gridRenderer.DrawLvlh(draw_list, frame, settings.Grid);
+                break;
+
+            case NavMode.VlfBody:
+                gridRenderer.DrawVlf(draw_list, frame, settings.Grid);
+                break;
+
+            case NavMode.BurnBody:
+                gridRenderer.DrawBurn(draw_list, frame, settings.Grid);
+                break;
+
+            case NavMode.Tgt:
+                gridRenderer.DrawTgt(draw_list, frame, settings.Grid);
+                break;
+
+            case NavMode.TVel:
+                gridRenderer.DrawTvel(draw_list, frame, settings.Grid);
+                break;
+
+            // I'm leaving this out until the base game adds docking.
+            //case NavMode.Dock:
+            //    gridRenderer.DrawDock(draw_list, frame, settings.Grid);
+            //    break;
         }
     }
 }
