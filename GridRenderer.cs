@@ -1,5 +1,6 @@
 ﻿using Brutal.ImGuiApi;
 using Brutal.Numerics;
+using System.Numerics;
 
 namespace NavHud;
 
@@ -120,129 +121,24 @@ public sealed class GridRenderer {
         );
     }
 
-    public void DrawLvlh(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.EastEgo is not { } xAxis) return;
-        if(frame.NorthEgo is not { } yAxis) return;
-        if(frame.UpEgo is not { } zAxis) return;
+    public void DrawGrid(
+        ImDrawListPtr drawList,
+        NavHudFrame frame,
+        GridSettings settings) {
+        if(frame.EastEgo is not { } x) return;
+        if(frame.NorthEgo is not { } y) return;
+        if(frame.UpEgo is not { } z) return;
 
         DrawBasisWireSphere(
-            draw_list: draw_list,
+            draw_list: drawList,
             center: frame.CenterEgo,
             radius: frame.Radius,
             segments: settings.Segments,
             rings: settings.Rings,
             color: settings.Color,
-            xAxis: xAxis,
-            yAxis: yAxis,
-            zAxis: zAxis
-        );
-    }
-
-    public void DrawEquatorial(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.EastEgo is not { } xAxis) return;
-        if(frame.NorthEgo is not { } yAxis) return;
-        if(frame.UpEgo is not { } zAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: xAxis,
-            yAxis: yAxis,
-            zAxis: zAxis
-        );
-    }
-
-    public void DrawVlf(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.EastEgo is not { } velocityAxis) return;
-        if(frame.NorthEgo is not { } rightAxis) return;
-        if(frame.UpEgo is not { } upAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: velocityAxis,
-            yAxis: rightAxis,
-            zAxis: upAxis
-        );
-    }
-
-    public void DrawBurn(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.BodyForwardEgo is not { } forwardAxis) return;
-        if(frame.BodyRightEgo is not { } rightAxis) return;
-        if(frame.BodyUpEgo is not { } upAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: forwardAxis,
-            yAxis: rightAxis,
-            zAxis: upAxis
-        );
-    }
-
-    public void DrawTgt(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.BodyForwardEgo is not { } forwardAxis) return;
-        if(frame.BodyRightEgo is not { } rightAxis) return;
-        if(frame.BodyUpEgo is not { } upAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: forwardAxis,
-            yAxis: rightAxis,
-            zAxis: upAxis
-        );
-    }
-
-    public void DrawTvel(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.BodyForwardEgo is not { } forwardAxis) return;
-        if(frame.BodyRightEgo is not { } rightAxis) return;
-        if(frame.BodyUpEgo is not { } upAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: forwardAxis,
-            yAxis: rightAxis,
-            zAxis: upAxis
-        );
-    }
-
-    public void DrawDock(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.BodyForwardEgo is not { } forwardAxis) return;
-        if(frame.BodyRightEgo is not { } rightAxis) return;
-        if(frame.BodyUpEgo is not { } upAxis) return;
-
-        DrawBasisWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            segments: settings.Segments,
-            rings: settings.Rings,
-            color: settings.Color,
-            xAxis: forwardAxis,
-            yAxis: rightAxis,
-            zAxis: upAxis
+            xAxis: x,
+            yAxis: y,
+            zAxis: z
         );
     }
 

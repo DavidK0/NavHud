@@ -41,9 +41,25 @@ public static class NavHudFrameBuilder {
             ? HudMath.Length(center) * settings.ZoomScale
             : settings.FixedSphereSize;
 
-        NavMode resolvedMode = settings.Mode == NavMode.Auto
-            ? NavMode.EnuBody
-            : settings.Mode;
+        NavFrame resolvedMode;
+        if(settings.Mode == NavFrame.Auto) {
+            switch(vehicle.VehicleRegion) {
+                case VehicleRegion.Surface:
+                    resolvedMode = NavFrame.Enu;
+                    break;
+                case VehicleRegion.LowOrbit:
+                    resolvedMode = NavFrame.Lvlh;
+                    break;
+                case VehicleRegion.HighOrbit:
+                    resolvedMode = NavFrame.Cce;
+                    break;
+                default:
+                    resolvedMode = NavFrame.Cce;
+                    break;
+            }
+        } else {
+            resolvedMode = settings.Mode;
+        }
 
         SetBasisForMode(
             vehicle,
@@ -78,7 +94,7 @@ public static class NavHudFrameBuilder {
         Vehicle vehicle,
         Camera camera,
         Celestial celestial,
-        NavMode mode,
+        NavFrame mode,
         out float3? xEgo,
         out float3? yEgo,
         out float3? zEgo
@@ -88,7 +104,19 @@ public static class NavHudFrameBuilder {
         zEgo = null;
 
         switch(mode) {
-            case NavMode.EnuBody:
+            case NavFrame.Cce:
+                xEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(1, 0, 0));
+                yEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(0, 1, 0));
+                zEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(0, 0, 1));
+                break;
+
+            case NavFrame.Cci:
+                xEgo = HudMath.CciDirectionToEgo(vehicle, camera, celestial, new double3(1, 0, 0));
+                yEgo = HudMath.CciDirectionToEgo(vehicle, camera, celestial, new double3(0, 1, 0));
+                zEgo = HudMath.CciDirectionToEgo(vehicle, camera, celestial, new double3(0, 0, 1));
+                break;
+
+            case NavFrame.Enu:
                 if(HudMath.TryGetLocalHorizontalBasisEgo(
                     vehicle,
                     camera,
@@ -103,13 +131,7 @@ public static class NavHudFrameBuilder {
                 }
                 break;
 
-            case NavMode.Cce:
-                xEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(1, 0, 0));
-                yEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(0, 1, 0));
-                zEgo = HudMath.EclDirectionToEgo(vehicle, camera, celestial, new double3(0, 0, 1));
-                break;
-
-            case NavMode.Lvlh:
+            case NavFrame.Lvlh:
                 if(HudMath.TryGetLvlhBasisEgo(vehicle, camera, celestial, out float3 forward, out float3 right, out float3 down)) {
                     xEgo = forward;
                     yEgo = right;
@@ -117,17 +139,37 @@ public static class NavHudFrameBuilder {
                 }
                 break;
 
-            case NavMode.VlfBody:
-
-
-                if(HudMath.TryGetVlfBasisEgo(vehicle, camera, celestial, out float3 velocity, out float3 rightVlf, out float3 upVlf)) {
-                    xEgo = velocity;
-                    yEgo = rightVlf;
-                    zEgo = upVlf;
+            case NavFrame.Surf:
+                if(HudMath.TryGetSurfaceVelocityBasisEgo(
+                    vehicle,
+                    camera,
+                    celestial,
+                    out float3 surfVel,
+                    out float3 surfVelRight,
+                    out float3 surfVelUp
+                )) {
+                    xEgo = surfVel;
+                    yEgo = surfVelRight;
+                    zEgo = surfVelUp;
                 }
                 break;
 
-            case NavMode.BurnBody:
+            case NavFrame.Vlh:
+                if(HudMath.TryGetVlhBasisEgo(
+                    vehicle,
+                    camera,
+                    celestial,
+                    out float3 velocity,
+                    out float3 radialOut,
+                    out float3 normal
+                )) {
+                    xEgo = velocity;
+                    yEgo = radialOut;
+                    zEgo = normal;
+                }
+                break;
+
+            case NavFrame.Burn:
                 if(HudMath.TryGetBurnBasisEgo(vehicle, camera, celestial, out float3 burn, out float3 burnRight, out float3 burnUp)) {
                     xEgo = burn;
                     yEgo = burnRight;
@@ -135,15 +177,8 @@ public static class NavHudFrameBuilder {
                 }
                 break;
 
-            case NavMode.Tgt:
-                if(HudMath.TryGetTargetBasisEgo(vehicle, camera, celestial, out float3 target, out float3 targetRight, out float3 targetUp)) {
-                    xEgo = target;
-                    yEgo = targetRight;
-                    zEgo = targetUp;
-                }
-                break;
 
-            case NavMode.TVel:
+            case NavFrame.TVel:
                 if(HudMath.TryGetTargetVelocityBasisEgo(vehicle, camera, celestial, out float3 tvel, out float3 tvelRight, out float3 tvelUp)) {
                     xEgo = tvel;
                     yEgo = tvelRight;
@@ -151,7 +186,15 @@ public static class NavHudFrameBuilder {
                 }
                 break;
 
-            case NavMode.Dock:
+            case NavFrame.Tgt:
+                if(HudMath.TryGetTargetBasisEgo(vehicle, camera, celestial, out float3 target, out float3 targetRight, out float3 targetUp)) {
+                    xEgo = target;
+                    yEgo = targetRight;
+                    zEgo = targetUp;
+                }
+                break;
+
+            case NavFrame.Dock:
                 if(HudMath.TryGetDockBasisEgo(vehicle, camera, celestial, out float3 dockForward, out float3 dockRight, out float3 dockUp)) {
                     xEgo = dockForward;
                     yEgo = dockRight;

@@ -8,7 +8,7 @@ namespace NavHud;
 public sealed class NavHudSettings {
     public bool Enabled = true;
 
-    public NavMode Mode = NavMode.Auto;
+    public NavFrame Mode = NavFrame.Auto;
 
     public bool IgnoreZoom = true;
     public float FixedSphereSize = 10.0f;
@@ -84,17 +84,20 @@ public sealed class IndicatorSettings {
     }
 }
 
-public enum NavMode {
+public enum NavFrame {
     Auto,
 
     Cce,
-    EnuBody,
+    Cci,
+    Enu,
     Lvlh,
-    VlfBody,
-    BurnBody,
+
+    Surf,
+    Vlh,
+    Burn,
+    TVel,
 
     Tgt,
-    TVel,
     Dock
 }
 
@@ -186,7 +189,7 @@ internal static class NavHudSettingsToml {
 
         s.Enabled = block.GetBool("enabled", s.Enabled);
 
-        if(block.TryEnum("mode", out NavMode mode))
+        if(block.TryEnum("mode", out NavFrame mode))
             s.Mode = mode;
 
         s.IgnoreZoom = block.GetBool("ignore_zoom", s.IgnoreZoom);

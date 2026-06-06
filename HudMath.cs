@@ -588,5 +588,111 @@ double3 directionCci
             (float)dirEgo.Z
         ));
     }
+
+    public static bool TryGetSurfaceVelocityBasisEgo(
+    Vehicle vehicle,
+    Camera camera,
+    Celestial celestial,
+    out float3 forward,
+    out float3 right,
+    out float3 up
+) {
+        forward = new float3(1, 0, 0);
+        right = new float3(0, 1, 0);
+        up = new float3(0, 0, 1);
+
+        if(vehicle == null || camera == null || celestial == null) return false;
+
+        double3 positionCci = vehicle.GetPositionCci();
+        double3 velocityCci = vehicle.GetVelocityCci();
+
+        if(IsZero(positionCci) || IsZero(velocityCci)) return false;
+
+        // Convert position and inertial velocity into the rotating body-fixed frame.
+        double3 positionCcf = celestial.GetCci2Ccf() * positionCci;
+        double3 velocityCcf = celestial.GetCci2Ccf() * velocityCci;
+
+        // Surface velocity should be horizontal motion over the rotating body's surface.
+        // Remove radial motion so the forward axis lies in the local tangent plane.
+        double3 upCcf = Normalize(positionCcf);
+        if(IsZero(upCcf)) return false;
+
+        double radialSpeed = Dot(velocityCcf, upCcf);
+        double3 surfaceVelocityCcf = velocityCcf - upCcf * radialSpeed;
+
+        if(IsZero(surfaceVelocityCcf)) return false;
+
+        double3 forwardCcf = Normalize(surfaceVelocityCcf);
+
+        // Local right for a forward-facing surface frame:
+        // forward = surface velocity
+        // up      = local radial out
+        // right   = forward x up
+        double3 rightCcf = Normalize(Cross(forwardCcf, upCcf));
+        if(IsZero(rightCcf)) return false;
+
+        // Recompute up to make the frame exactly orthonormal.
+        upCcf = Normalize(Cross(rightCcf, forwardCcf));
+        if(IsZero(upCcf)) return false;
+
+        double3 forwardCci = celestial.GetCcf2Cci() * forwardCcf;
+        double3 rightCci = celestial.GetCcf2Cci() * rightCcf;
+        double3 upCci = celestial.GetCcf2Cci() * upCcf;
+
+        forward = Normalize(CciDirectionToEgo(vehicle, camera, celestial, forwardCci));
+        right = Normalize(CciDirectionToEgo(vehicle, camera, celestial, rightCci));
+        up = Normalize(CciDirectionToEgo(vehicle, camera, celestial, upCci));
+
+        return !IsZero(forward) && !IsZero(right) && !IsZero(up);
+    }
+
+    public static bool TryGetVlhBasisEgo(
+        Vehicle vehicle,
+        Camera camera,
+        Celestial celestial,
+        out float3 velocity,
+        out float3 radialOut,
+        out float3 normal
+    ) {
+        velocity = new float3(1, 0, 0);
+        radialOut = new float3(0, 1, 0);
+        normal = new float3(0, 0, 1);
+
+        if(vehicle == null || camera == null || celestial == null) return false;
+
+        double3 positionCci = vehicle.GetPositionCci();
+        double3 velocityCci = vehicle.GetVelocityCci();
+
+        if(IsZero(positionCci) || IsZero(velocityCci)) return false;
+
+        double3 velocityCciDir = Normalize(velocityCci);
+        double3 radialOutCci = Normalize(positionCci);
+
+        if(IsZero(velocityCciDir) || IsZero(radialOutCci)) return false;
+
+        // Orbit normal. This is perpendicular to the orbital plane.
+        double3 normalCci = Normalize(Cross(positionCci, velocityCci));
+        if(IsZero(normalCci)) return false;
+
+        // For a clean orthonormal VLH basis:
+        // X = velocity
+        // Z = orbit normal
+        // Y = Z x X, which is mostly radial-out but exactly perpendicular to velocity.
+        //
+        // In circular orbit this equals radial-out. In eccentric orbit it differs slightly,
+        // because velocity is not exactly perpendicular to radial-out.
+        radialOutCci = Normalize(Cross(normalCci, velocityCciDir));
+        if(IsZero(radialOutCci)) return false;
+
+        velocity = Normalize(CciDirectionToEgo(vehicle, camera, celestial, velocityCciDir));
+        radialOut = Normalize(CciDirectionToEgo(vehicle, camera, celestial, radialOutCci));
+        normal = Normalize(CciDirectionToEgo(vehicle, camera, celestial, normalCci));
+
+        return !IsZero(velocity) && !IsZero(radialOut) && !IsZero(normal);
+    }
+
+    public static double Dot(double3 a, double3 b) {
+        return a.X * b.X + a.Y * b.Y + a.Z * b.Z;
+    }
 }
 

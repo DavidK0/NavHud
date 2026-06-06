@@ -27,9 +27,6 @@ internal static class SaveLoadObserver {
                 CurrentSaveId = __instance.Id ?? string.Empty;
 
                 NavHudSettingsStore.LoadForSave(CurrentSaveId);
-
-                DefaultCategory.Log.Debug(
-                    $"[NavHud] SaveLoadObserver.LoadPatch: loaded save '{CurrentSaveId}'.");
             } catch(Exception ex) {
                 DefaultCategory.Log.Warning(
                     $"[NavHud] SaveLoadObserver Load Postfix: {ex}");
@@ -49,9 +46,6 @@ internal static class SaveLoadObserver {
                 CurrentSaveId = newSaveId;
 
                 NavHudSettingsStore.SaveForSave(newSaveId);
-
-                DefaultCategory.Log.Debug(
-                    $"[NavHud] Make Postfix: saved current NavHud settings to '{newSaveId}'.");
             } catch(Exception ex) {
                 DefaultCategory.Log.Warning(
                     $"[NavHud] SaveLoadObserver Make Postfix: {ex}");

@@ -34,50 +34,25 @@ public class NavHudModEntryPoint {
 
         if(ImGui.BeginMenu("Grid Orientation")) {
 
-            if(ImGui.MenuItem("Auto", "", settings.Mode == NavMode.Auto)) {
-                settings.Mode = NavMode.Auto;
+            if(ImGui.MenuItem("Auto", "", settings.Mode == NavFrame.Auto)) {
+                settings.Mode = NavFrame.Auto;
             }
 
-            if(ImGui.MenuItem("Star", "", settings.Mode == NavMode.Cce)) {
-                settings.Mode = NavMode.Cce;
+            if(ImGui.MenuItem("Star", "", settings.Mode == NavFrame.Cce)) {
+                settings.Mode = NavFrame.Cce;
             }
 
-            if(ImGui.MenuItem("Surf", "", settings.Mode == NavMode.EnuBody)) {
-                settings.Mode = NavMode.EnuBody;
+            if(ImGui.MenuItem("Equatorial", "", settings.Mode == NavFrame.Cci)) {
+                settings.Mode = NavFrame.Cci;
             }
 
-            if(ImGui.MenuItem("Orbit", "", settings.Mode == NavMode.Lvlh)) {
-                settings.Mode = NavMode.Lvlh;
+            if(ImGui.MenuItem("Surface", "", settings.Mode == NavFrame.Enu)) {
+                settings.Mode = NavFrame.Enu;
             }
 
-            if(ImGui.MenuItem("OVel", "", settings.Mode == NavMode.VlfBody)) {
-                settings.Mode = NavMode.VlfBody;
+            if(ImGui.MenuItem("Orbit", "", settings.Mode == NavFrame.Lvlh)) {
+                settings.Mode = NavFrame.Lvlh;
             }
-
-            if(ImGui.MenuItem("Burn", "", settings.Mode == NavMode.BurnBody)) {
-                settings.Mode = NavMode.BurnBody;
-            }
-
-            // Only show target-relative options if the vehicle has a target
-            IOrbiter? target = Program.ControlledVehicle.Target;
-
-            if(target != null) {
-                // Direction-to-target frame
-                if(ImGui.MenuItem("TGT", "", settings.Mode == NavMode.Tgt)) {
-                    settings.Mode = NavMode.Tgt;
-                }
-
-                // Relative target velocity frame
-                if(ImGui.MenuItem("TVel", "", settings.Mode == NavMode.TVel)) {
-                    settings.Mode = NavMode.TVel;
-                }
-            }
-
-            // I'm leaving this out until the base game adds docking
-            // Docking/target body frame
-            //if(ImGui.MenuItem("Dock", "", settings.Mode == NavMode.Dock)) {
-            //    settings.Mode = NavMode.Dock;
-            //}
 
             ImGui.EndMenu();
         }
@@ -121,10 +96,10 @@ public class NavHudModEntryPoint {
     [StarMapAfterGui]
     public static void OnAfterUi(double dt) {
         // If the vehicle doesn't have a target and the current mode is a target-relative mode, change the mode to auto
-        if(NavHudSettingsStore.Current.Mode is NavMode.Tgt or NavMode.TVel or NavMode.Dock) {
+        if(NavHudSettingsStore.Current.Mode is NavFrame.Tgt or NavFrame.TVel or NavFrame.Dock) {
             IOrbiter? target = Program.ControlledVehicle.Target;
             if(target == null) {
-                NavHudSettingsStore.Current.Mode = NavMode.Auto;
+                NavHudSettingsStore.Current.Mode = NavFrame.Auto;
             }
         }
 
