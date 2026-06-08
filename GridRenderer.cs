@@ -1,6 +1,5 @@
 ﻿using Brutal.ImGuiApi;
 using Brutal.Numerics;
-using System.Numerics;
 
 namespace NavHud;
 
@@ -11,98 +10,6 @@ public sealed class GridRenderer {
         this.lines = lines;
     }
 
-    private void DrawAzAltWireSphere(
-        ImDrawListPtr draw_list,
-        float3 center,
-        float radius,
-        int azSegments,
-        int altRings,
-        float4 color,
-        float3 east,
-        float3 north,
-        float3 up
-    ) {
-        if(radius <= 0.0f) return;
-        if(azSegments < 4) return;
-        if(altRings < 2) return;
-
-        // Altitude rings: constant altitude, sweeping azimuth.
-        for(int r = 1; r < altRings; r++) {
-            float alt = -MathF.PI / 2.0f + MathF.PI * r / altRings;
-
-            for(int i = 0; i < azSegments; i++) {
-                float az0 = 2.0f * MathF.PI * i / azSegments;
-                float az1 = 2.0f * MathF.PI * (i + 1) / azSegments;
-
-                float3 p0 = center + AzAltToEgoOffset(
-                    az0,
-                    alt,
-                    radius,
-                    east,
-                    north,
-                    up
-                );
-
-                float3 p1 = center + AzAltToEgoOffset(
-                    az1,
-                    alt,
-                    radius,
-                    east,
-                    north,
-                    up
-                );
-
-                lines.Line(draw_list, p0, p1, color);
-            }
-        }
-
-        // Azimuth arcs: constant azimuth, sweeping altitude.
-        int azimuthStep = Math.Max(1, azSegments / 16);
-
-        for(int s = 0; s < azSegments; s += azimuthStep) {
-            float az = 2.0f * MathF.PI * s / azSegments;
-
-            for(int r = 0; r < altRings; r++) {
-                float alt0 = -MathF.PI / 2.0f + MathF.PI * r / altRings;
-                float alt1 = -MathF.PI / 2.0f + MathF.PI * (r + 1) / altRings;
-
-                float3 p0 = center + AzAltToEgoOffset(
-                    az,
-                    alt0,
-                    radius,
-                    east,
-                    north,
-                    up
-                );
-
-                float3 p1 = center + AzAltToEgoOffset(
-                    az,
-                    alt1,
-                    radius,
-                    east,
-                    north,
-                    up
-                );
-
-                lines.Line(draw_list, p0, p1, color);
-            }
-        }
-    }
-
-    private static float3 AzAltToEgoOffset(
-        float az,
-        float alt,
-        float radius,
-        float3 east,
-        float3 north,
-        float3 up
-    ) {
-        return
-            east * (MathF.Cos(alt) * MathF.Sin(az) * radius) +
-            north * (MathF.Cos(alt) * MathF.Cos(az) * radius) +
-            up * (MathF.Sin(alt) * radius);
-    }
-
     public void DrawGrid(
         ImDrawListPtr drawList,
         Basis frame,
@@ -110,7 +17,7 @@ public sealed class GridRenderer {
         float radius,
         GridSettings settings) {
 
-        DrawBasisWireSphere(
+        DrawWireSphere(
             draw_list: drawList,
             center: center,
             radius: radius,
@@ -123,7 +30,7 @@ public sealed class GridRenderer {
         );
     }
 
-    private void DrawBasisWireSphere(
+    private void DrawWireSphere(
     ImDrawListPtr draw_list,
     float3 center,
     float radius,

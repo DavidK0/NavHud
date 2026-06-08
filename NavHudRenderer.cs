@@ -111,7 +111,7 @@ public unsafe sealed class NavHudRenderer {
             resolvedGridFrame = settings.GridFrame;
         }
         if(settings.Grid.Enabled) {
-            if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedGridFrame, out Basis gridFrame)) {
+            if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedGridFrame, out Basis gridFrame)) {
                 gridRenderer.DrawGrid(draw_list, gridFrame, centerf, radius, settings.Grid);
             }
         }
@@ -134,21 +134,21 @@ public unsafe sealed class NavHudRenderer {
 
         // Prograde, retrograde, etc. velocity indicators
         if(settings.VelocityEnabled) {
-            if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedVelocityFrame, out Basis velFrame)) {
+            if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedVelocityFrame, out Basis velFrame)) {
                 velocityRenderer.Draw(draw_list, velFrame, centerf, radius, settings.Symbols);
             }
         }
 
-        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Attitude, out Basis attitudeFrame)) {
+        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Attitude, out Basis attitudeFrame)) {
             attitudeRenderer.Draw(draw_list, attitudeFrame, centerf, radius, settings.Symbols);
         }
-        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Tgt, out Basis tgtFrame)) {
+        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Tgt, out Basis tgtFrame)) {
             targetRenderer.Draw(draw_list, tgtFrame, centerf, radius, settings.Symbols);
         }
-        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Dock, out Basis dockFrame)) {
+        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Dock, out Basis dockFrame)) {
             dockRenderer.Draw(draw_list, dockFrame, centerf, radius, settings.Symbols);
         }
-        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Burn, out Basis burnFrame)) {
+        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Burn, out Basis burnFrame)) {
             burnRenderer.Draw(draw_list, burnFrame, centerf, radius, settings.Symbols);
         }
 

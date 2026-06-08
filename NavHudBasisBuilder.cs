@@ -3,7 +3,7 @@ using KSA;
 
 namespace NavHud;
 
-public static class NavHudBasisBuilder {
+public static class NavReferenceFrameBuilderBuilder {
     public static bool TryCreate(
         Vehicle? vehicle,
         Camera? camera,
@@ -65,7 +65,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Enu:
-                if(HudBasis.TryGetLocalHorizontalBasisEgo(
+                if(ReferenceFrameBuilder.TryGetLocalHorizontalBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -80,7 +80,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Lvlh:
-                if(HudBasis.TryGetLvlhBasisEgo(vehicle, camera, parentBody, out float3 forward, out float3 right, out float3 down)) {
+                if(ReferenceFrameBuilder.TryGetLvlhBasisEgo(vehicle, camera, parentBody, out float3 forward, out float3 right, out float3 down)) {
                     forwardEgo = forward;
                     rightEgo = right;
                     upEgo = down;
@@ -88,7 +88,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.SurfVel:
-                if(HudBasis.TryGetSurfaceVelocityBasisEgo(
+                if(ReferenceFrameBuilder.TryGetSurfaceVelocityBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -103,7 +103,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Vlh:
-                if(HudBasis.TryGetVlhBasisEgo(
+                if(ReferenceFrameBuilder.TryGetVlhBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -118,7 +118,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.TVel:
-                if(HudBasis.TryGetTargetVelocityBasisEgo(
+                if(ReferenceFrameBuilder.TryGetTargetVelocityBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -133,7 +133,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Attitude:
-                if(HudBasis.TryGetAttitudeBasisEgo(
+                if(ReferenceFrameBuilder.TryGetAttitudeBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -148,7 +148,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Tgt:
-                if(HudBasis.TryGetTargetBasisEgo(
+                if(ReferenceFrameBuilder.TryGetTargetBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -163,7 +163,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Dock:
-                if(HudBasis.TryGetDockBasisEgo(
+                if(ReferenceFrameBuilder.TryGetDockBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
@@ -178,7 +178,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Burn:
-                if(HudBasis.TryGetBurnBasisEgo(
+                if(ReferenceFrameBuilder.TryGetBurnBasisEgo(
                     vehicle,
                     camera,
                     parentBody,
