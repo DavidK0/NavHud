@@ -1,0 +1,22 @@
+# Notes
+CCE = ecliptic plane is fundamental plane
+CCI = celestial equator is fundamental plane
+LVLH is along-track/radial/normal
+VLH is velocity/radial out/normal
+CCF is unused (unless I add some ground track feature later)
+
+# Modes
+Frame|Name|Grid or symbol?
+---
+CCE|Star|Grid
+CCI|Equatorial|Grid
+ENU (Derived from CCF)|Surface (Azimuth & Altitude)|Grid
+LVLH|Orbit|Grid
+
+Surface velocity|Surface velocity|Symbol
+VLH|Orbital velocity|Symbol
+TVel|Target velocity|Symbol
+
+Burn|Burn|Symbol
+Target|Target|Symbol
+Dock|Dock orientation|Symbol
