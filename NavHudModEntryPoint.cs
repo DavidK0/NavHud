@@ -103,13 +103,13 @@ public class NavHudModEntryPoint {
             //ImGui.Checkbox("Show Symbols", ref settings.ShowSymbols);
             ImGui.SliderFloat(
                 "Symbol Line Thickness",
-                ref settings.Velocity.LineThickness,
+                ref settings.Symbols.LineThickness,
                 1f,
                 15.0f
             );
             ImGui.SliderFloat(
                 "Symbol Size",
-                ref settings.Velocity.Size,
+                ref settings.Symbols.Size,
                 .01f,
                 .3f
             );

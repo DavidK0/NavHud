@@ -7,7 +7,7 @@ public static class NavHudBasisBuilder {
     public static bool TryCreate(
         Vehicle? vehicle,
         Camera? camera,
-        Celestial celestial,
+        IParentBody parentBody,
         NavHudSettings settings,
         NavFrame resolvedGridFrame,
         out Basis frame
@@ -19,7 +19,7 @@ public static class NavHudBasisBuilder {
         SetBasisForMode(
             vehicle,
             camera,
-            celestial,
+            parentBody,
             resolvedGridFrame,
             out float3? forwardEgo,
             out float3? rightEgo,
@@ -41,7 +41,7 @@ public static class NavHudBasisBuilder {
     private static void SetBasisForMode(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         NavFrame mode,
         out float3? forwardEgo,
         out float3? rightEgo,
@@ -53,22 +53,22 @@ public static class NavHudBasisBuilder {
 
         switch(mode) {
             case NavFrame.Cce:
-                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, celestial, new double3(1, 0, 0), out float3 x)) forwardEgo = x;
-                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, celestial, new double3(0, 1, 0), out float3 y)) rightEgo = y;
-                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, celestial, new double3(0, 0, 1), out float3 z)) upEgo = z;
+                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, parentBody, new double3(1, 0, 0), out float3 x)) forwardEgo = x;
+                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, parentBody, new double3(0, 1, 0), out float3 y)) rightEgo = y;
+                if(EgoTransform.TryEclDirectionToEgo(vehicle, camera, parentBody, new double3(0, 0, 1), out float3 z)) upEgo = z;
                 break;
 
             case NavFrame.Cci:
-                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, new double3(1, 0, 0), out float3 xCci)) forwardEgo = xCci;
-                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, new double3(0, 1, 0), out float3 yCci)) rightEgo = yCci;
-                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, new double3(0, 0, 1), out float3 zCci)) upEgo = zCci;
+                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, new double3(1, 0, 0), out float3 xCci)) forwardEgo = xCci;
+                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, new double3(0, 1, 0), out float3 yCci)) rightEgo = yCci;
+                if(EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, new double3(0, 0, 1), out float3 zCci)) upEgo = zCci;
                 break;
 
             case NavFrame.Enu:
                 if(HudBasis.TryGetLocalHorizontalBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 east,
                     out float3 north,
                     out float3 up
@@ -80,7 +80,7 @@ public static class NavHudBasisBuilder {
                 break;
 
             case NavFrame.Lvlh:
-                if(HudBasis.TryGetLvlhBasisEgo(vehicle, camera, celestial, out float3 forward, out float3 right, out float3 down)) {
+                if(HudBasis.TryGetLvlhBasisEgo(vehicle, camera, parentBody, out float3 forward, out float3 right, out float3 down)) {
                     forwardEgo = forward;
                     rightEgo = right;
                     upEgo = down;
@@ -91,7 +91,7 @@ public static class NavHudBasisBuilder {
                 if(HudBasis.TryGetSurfaceVelocityBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 surfVel,
                     out float3 surfVelRight,
                     out float3 surfVelUp
@@ -106,7 +106,7 @@ public static class NavHudBasisBuilder {
                 if(HudBasis.TryGetVlhBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 velocity,
                     out float3 normal,
                     out float3 radialOut
@@ -121,7 +121,7 @@ public static class NavHudBasisBuilder {
                 if(HudBasis.TryGetTargetVelocityBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 tvel,
                     out float3 tvelRight,
                     out float3 tvelUp
@@ -132,18 +132,18 @@ public static class NavHudBasisBuilder {
                 }
                 break;
 
-            case NavFrame.Burn:
-                if(HudBasis.TryGetBurnBasisEgo(
+            case NavFrame.Attitude:
+                if(HudBasis.TryGetAttitudeBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
-                    out float3 burn,
-                    out float3 burnRight,
-                    out float3 burnUp
+                    parentBody,
+                    out float3 attitude,
+                    out float3 attitudeRight,
+                    out float3 attitudeUp
                 )) {
-                    forwardEgo = burn;
-                    rightEgo = burnRight;
-                    upEgo = burnUp;
+                    forwardEgo = attitude;
+                    rightEgo = attitudeRight;
+                    upEgo = attitudeUp;
                 }
                 break;
 
@@ -151,7 +151,7 @@ public static class NavHudBasisBuilder {
                 if(HudBasis.TryGetTargetBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 target,
                     out float3 targetRight,
                     out float3 targetUp
@@ -166,7 +166,7 @@ public static class NavHudBasisBuilder {
                 if(HudBasis.TryGetDockBasisEgo(
                     vehicle,
                     camera,
-                    celestial,
+                    parentBody,
                     out float3 dockForward,
                     out float3 dockRight,
                     out float3 dockUp
@@ -174,6 +174,21 @@ public static class NavHudBasisBuilder {
                     forwardEgo = dockForward;
                     rightEgo = dockRight;
                     upEgo = dockUp;
+                }
+                break;
+
+            case NavFrame.Burn:
+                if(HudBasis.TryGetBurnBasisEgo(
+                    vehicle,
+                    camera,
+                    parentBody,
+                    out float3 burn,
+                    out float3 burnRight,
+                    out float3 burnUp
+                )) {
+                    forwardEgo = burn;
+                    rightEgo = burnRight;
+                    upEgo = burnUp;
                 }
                 break;
         }

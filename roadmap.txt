@@ -1,13 +1,14 @@
 Current features:
- - 4 grid mods (CCE, CCI, ENU, LVLH)
+ - 4 grid modes (CCE, CCI, ENU, LVLH)
+ - 3 velocity modes (Surface, Orbit, Target)
  - attitude/antiattitude indicator
+ - target/antitarget indicators when a target is selected
  - togglable zoom-based or fixed size for the grids and attitude indicator
  - Prograde/retrograde, normal/antinormal, radial in/out for orbital velocity
  - Option to disable grid lines 
  - Option to disable attitude markers
  - per-save config files, saved in `saves/`
  - line thickness/symbol scaling
- - target/antitarget indicators when a target is selected
  TODO:
  - autopilot indicator when autopilot is on + tracking line
  - Docking port alignment indicator when a docking port is selected.

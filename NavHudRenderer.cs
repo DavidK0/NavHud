@@ -1,5 +1,6 @@
 ﻿
 using Brutal.ImGuiApi;
+using Brutal.Logging;
 using Brutal.Numerics;
 using KSA;
 
@@ -11,11 +12,21 @@ public unsafe sealed class NavHudRenderer {
     private readonly GridRenderer gridRenderer;
     private readonly VelocityRenderer velocityRenderer;
 
+    private readonly AttitudeIndicatorRenderer attitudeRenderer;
+    private readonly TargetIndicatorRenderer targetRenderer;
+    private readonly DockIndicatorRenderer dockRenderer;
+    private readonly BurnIndicatorRenderer burnRenderer;
+
     public NavHudRenderer() {
         lines = new ImDrawLineRenderer();
         var symbolRenderer = new HudSymbolRenderer(lines);
         gridRenderer = new GridRenderer(lines);
         velocityRenderer = new VelocityRenderer(symbolRenderer);
+
+        attitudeRenderer = new AttitudeIndicatorRenderer(symbolRenderer);
+        targetRenderer = new TargetIndicatorRenderer(symbolRenderer);
+        dockRenderer = new DockIndicatorRenderer(symbolRenderer);
+        burnRenderer = new BurnIndicatorRenderer(symbolRenderer);
     }
 
     public void Draw(double dt, NavHudSettings? settings) {
@@ -29,7 +40,7 @@ public unsafe sealed class NavHudRenderer {
             return;
         }
 
-        if(vehicle.Orbit.Parent is not Celestial celestial) return;
+        IParentBody parentBody = (IParentBody)vehicle.Orbit.Parent;
 
         // CREATE WINDOW
         ImGuiViewport* viewport = ImGui.GetMainViewport();
@@ -55,7 +66,7 @@ public unsafe sealed class NavHudRenderer {
         }
         ImDrawListPtr draw_list = ImGui.GetWindowDrawList();
 
-        EgoTransform.TryVehicleToEgo(vehicle, camera, celestial, out double3 center);
+        EgoTransform.TryVehicleToEgo(vehicle, camera, parentBody, out double3 center);
 
         float3 centerf = new float3((float)center.X, (float)center.Y, (float)center.Z);
         float radius = settings.IgnoreZoom
@@ -82,7 +93,7 @@ public unsafe sealed class NavHudRenderer {
             resolvedGridFrame = settings.GridFrame;
         }
         if(settings.Grid.Enabled) {
-            if(NavHudBasisBuilder.TryCreate(vehicle, camera, celestial, settings, resolvedGridFrame, out Basis gridFrame)) {
+            if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedGridFrame, out Basis gridFrame)) {
                 gridRenderer.DrawGrid(draw_list, gridFrame, centerf, radius, settings.Grid);
             }
         }
@@ -94,7 +105,7 @@ public unsafe sealed class NavHudRenderer {
         if(settings.VelocityFrame == NavFrame.Auto) {
             if(vehicle.Target != null) {
                 resolvedVelocityFrame = NavFrame.TVel;
-            }  else if(vehicle.VehicleRegion == VehicleRegion.Surface) {
+            } else if(vehicle.VehicleRegion == VehicleRegion.Surface) {
                 resolvedVelocityFrame = NavFrame.SurfVel;
             } else {
                 resolvedVelocityFrame = NavFrame.Vlh;
@@ -104,13 +115,25 @@ public unsafe sealed class NavHudRenderer {
         }
 
         // Prograde, retrograde, etc. velocity indicators
-        if(settings.Velocity.Enabled) {
-            if(NavHudBasisBuilder.TryCreate(vehicle, camera, celestial, settings, resolvedVelocityFrame, out Basis velFrame)) {
-                velocityRenderer.DrawVelocity(draw_list, velFrame, centerf, radius, settings.Velocity);
+        if(settings.VelocityEnabled) {
+            if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedVelocityFrame, out Basis velFrame)) {
+                velocityRenderer.Draw(draw_list, velFrame, centerf, radius, settings.Symbols);
             }
         }
 
-        // TODO: Target, docking, and other indicators
+        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Attitude, out Basis attitudeFrame)) {
+            attitudeRenderer.Draw(draw_list, attitudeFrame, centerf, radius, settings.Symbols);
+        }
+        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Tgt, out Basis tgtFrame)) {
+            targetRenderer.Draw(draw_list, tgtFrame, centerf, radius, settings.Symbols);
+        }
+        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Dock, out Basis dockFrame)) {
+            dockRenderer.Draw(draw_list, dockFrame, centerf, radius, settings.Symbols);
+        }
+        if(NavHudBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Burn, out Basis burnFrame)) {
+            burnRenderer.Draw(draw_list, burnFrame, centerf, radius, settings.Symbols);
+        }
+
 
         ImGui.End();
     }

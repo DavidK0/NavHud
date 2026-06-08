@@ -105,16 +105,16 @@ public static class EgoTransform {
     public static bool TryVehicleToEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out double3 ego
     ) {
         ego = new double3(0.0, 0.0, 0.0);
         if(vehicle == null) return false;
         if(camera == null) return false;
-        if(celestial == null) return false;
+        if(parentBody == null) return false;
         double3 vehicleCci = vehicle.GetPositionCci();
-        double3 vehicleCce = celestial.GetCci2Cce() * vehicleCci;
-        double3 vehicleEcl = celestial.GetPositionEcl() + vehicleCce;
+        double3 vehicleCce = parentBody.GetCci2Cce() * vehicleCci;
+        double3 vehicleEcl = parentBody.GetPositionEcl() + vehicleCce;
         ego = camera.EclToEgo(vehicleEcl);
         return true;
     }
@@ -122,19 +122,19 @@ public static class EgoTransform {
     public static bool TryBodyDirectionToEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         double3 bodyDirection,
         out float3 egoDirection
     ) {
         egoDirection = new float3(0.0f, 0.0f, 0.0f);
         if(vehicle == null) return false;
         if(camera == null) return false;
-        if(celestial == null) return false;
+        if(parentBody == null) return false;
         double3 vehicleCci = vehicle.GetPositionCci();
         double3 dirCci = vehicle.GetBody2Cci() * bodyDirection;
-        double3 dirCce = celestial.GetCci2Cce() * dirCci;
-        double3 vehicleCce = celestial.GetCci2Cce() * vehicleCci;
-        double3 vehicleEcl = celestial.GetPositionEcl() + vehicleCce;
+        double3 dirCce = parentBody.GetCci2Cce() * dirCci;
+        double3 vehicleCce = parentBody.GetCci2Cce() * vehicleCci;
+        double3 vehicleEcl = parentBody.GetPositionEcl() + vehicleCce;
         double3 centerEgo = camera.EclToEgo(vehicleEcl);
         double3 pointEgo = camera.EclToEgo(vehicleEcl + dirCce);
         double3 dirEgo = pointEgo - centerEgo;
@@ -145,14 +145,14 @@ public static class EgoTransform {
     public static bool TryCciDirectionToEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         double3 directionCci,
         out float3 egoDirection
     ) {
         egoDirection = new float3(0.0f, 0.0f, 0.0f);
         if(vehicle == null) return false;
         if(camera == null) return false;
-        if(celestial == null) return false;
+        if(parentBody == null) return false;
         double len = Math.Sqrt(
             directionCci.X * directionCci.X +
             directionCci.Y * directionCci.Y +
@@ -162,8 +162,8 @@ public static class EgoTransform {
         if(len <= 0.0) {
             return false;
         }
-        double3 directionCce = celestial.GetCci2Cce() * directionCci;
-        if(!TryGetVehicleEcl(vehicle, celestial, out double3 vehicleEcl)) return false;
+        double3 directionCce = parentBody.GetCci2Cce() * directionCci;
+        if(!TryGetVehicleEcl(vehicle, parentBody, out double3 vehicleEcl)) return false;
         double3 centerEgo = camera.EclToEgo(vehicleEcl);
         double3 pointEgo = camera.EclToEgo(vehicleEcl + directionCce);
         double3 directionEgo = pointEgo - centerEgo;
@@ -174,16 +174,16 @@ public static class EgoTransform {
     public static bool TryEclDirectionToEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         double3 eclDirection,
         out float3 egoDirection
     ) {
         egoDirection = new float3(0, 0, 0);
 
-        if(vehicle == null || camera == null || celestial == null)
+        if(vehicle == null || camera == null || parentBody == null)
             return false;
 
-        if(!TryGetVehicleEcl(vehicle, celestial, out double3 vehicleEcl)) return false;
+        if(!TryGetVehicleEcl(vehicle, parentBody, out double3 vehicleEcl)) return false;
 
         double scale = 1000.0;
 
@@ -199,18 +199,18 @@ public static class EgoTransform {
 
     private static bool TryGetVehicleEcl(
         Vehicle vehicle,
-        Celestial celestial,
+        IParentBody parentBody,
         out double3 vehicleEcl
     ) {
         vehicleEcl = new double3(0.0, 0.0, 0.0);
 
         if(vehicle == null) return false;
-        if(celestial == null) return false;
+        if(parentBody == null) return false;
 
         double3 vehicleCci = vehicle.GetPositionCci();
-        double3 vehicleCce = celestial.GetCci2Cce() * vehicleCci;
+        double3 vehicleCce = parentBody.GetCci2Cce() * vehicleCci;
 
-        vehicleEcl = celestial.GetPositionEcl() + vehicleCce;
+        vehicleEcl = parentBody.GetPositionEcl() + vehicleCce;
         return true;
     }
 }
@@ -239,7 +239,7 @@ public static class HudBasis {
     public static bool TryGetLocalHorizontalBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 east,
         out float3 north,
         out float3 up
@@ -250,12 +250,12 @@ public static class HudBasis {
 
         if(vehicle == null) return false;
         if(camera == null) return false;
-        if(celestial == null) return false;
+        if(parentBody == null) return false;
 
         double3 vehicleCci = vehicle.GetPositionCci();
 
         // Vehicle position in planet-fixed CCF.
-        double3 vehicleCcf = celestial.GetCci2Ccf() * vehicleCci;
+        double3 vehicleCcf = parentBody.GetCci2Ccf() * vehicleCci;
 
         double x = vehicleCcf.X;
         double y = vehicleCcf.Y;
@@ -287,13 +287,13 @@ public static class HudBasis {
         );
 
         // Convert basis directions from CCF -> CCE.
-        double3 eastEcl = celestial.GetCcf2Cce() * eastCcf;
-        double3 northEcl = celestial.GetCcf2Cce() * northCcf;
-        double3 upEcl = celestial.GetCcf2Cce() * upCcf;
+        double3 eastEcl = parentBody.GetCcf2Cce() * eastCcf;
+        double3 northEcl = parentBody.GetCcf2Cce() * northCcf;
+        double3 upEcl = parentBody.GetCcf2Cce() * upCcf;
 
         // Vehicle center in ECL.
-        double3 vehicleCce = celestial.GetCci2Cce() * vehicleCci;
-        double3 vehicleEcl = celestial.GetPositionEcl() + vehicleCce;
+        double3 vehicleCce = parentBody.GetCci2Cce() * vehicleCci;
+        double3 vehicleEcl = parentBody.GetPositionEcl() + vehicleCce;
 
         double3 centerEgo = camera.EclToEgo(vehicleEcl);
 
@@ -315,7 +315,7 @@ public static class HudBasis {
     public static bool TryGetLvlhBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 down
@@ -324,7 +324,7 @@ public static class HudBasis {
         right = new float3(0, 1, 0);
         down = new float3(0, 0, 1);
 
-        if(vehicle == null || camera == null || celestial == null) return false;
+        if(vehicle == null || camera == null || parentBody == null) return false;
 
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
@@ -341,9 +341,9 @@ public static class HudBasis {
         double3 forwardCci = VectorMath.Normalize(VectorMath.Cross(rightCci, downCci));
         if(VectorMath.IsZero(forwardCci)) return false;
 
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, rightCci, out right)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, downCci, out down)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, downCci, out down)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, forwardCci, out forward)) return false;
 
         return !VectorMath.IsZero(forward) && !VectorMath.IsZero(right) && !VectorMath.IsZero(down);
     }
@@ -351,7 +351,7 @@ public static class HudBasis {
     public static bool TryGetBurnBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 up
@@ -367,7 +367,7 @@ public static class HudBasis {
     public static bool TryGetTargetBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 up
@@ -376,15 +376,68 @@ public static class HudBasis {
         right = new float3(0, 1, 0);
         up = new float3(0, 0, 1);
 
-        // Needs access to NavigationTarget.PositionCci.
-        return false;
+        if(vehicle == null || camera == null || parentBody == null) return false;
+
+        IOrbiter target = vehicle.Target;
+        if(target == null) return false;
+
+        double3 vehicleCci = vehicle.GetPositionCci();
+        double3 targetCci = target.GetPositionCci();
+
+        if(VectorMath.IsZero(vehicleCci) || VectorMath.IsZero(targetCci)) return false;
+
+        // Forward points from the vehicle toward the target.
+        double3 targetRelativeCci = targetCci - vehicleCci;
+        if(VectorMath.IsZero(targetRelativeCci)) return false;
+
+        double3 forwardCci = VectorMath.Normalize(targetRelativeCci);
+        if(VectorMath.IsZero(forwardCci)) return false;
+
+        // Up initially points away from the surface at the vehicle position.
+        double3 referenceUpCci = VectorMath.Normalize(vehicleCci);
+        if(VectorMath.IsZero(referenceUpCci)) return false;
+
+        // Remove the component of up along forward so the basis is orthonormal.
+        double3 upCci =
+            referenceUpCci - forwardCci * VectorMath.Dot(referenceUpCci, forwardCci);
+
+        // If the target is nearly straight up/down, radial up cannot define roll.
+        // Use a fallback axis and project it into the plane perpendicular to forward.
+        if(VectorMath.IsZero(upCci)) {
+            double3 fallback = new double3(0.0, 0.0, 1.0);
+
+            if(Math.Abs(VectorMath.Dot(fallback, forwardCci)) > 0.99) {
+                fallback = new double3(1.0, 0.0, 0.0);
+            }
+
+            upCci = fallback - forwardCci * VectorMath.Dot(fallback, forwardCci);
+        }
+
+        upCci = VectorMath.Normalize(upCci);
+        if(VectorMath.IsZero(upCci)) return false;
+
+        // Right is orthogonal to both forward and up.
+        double3 rightCci = VectorMath.Normalize(VectorMath.Cross(forwardCci, upCci));
+        if(VectorMath.IsZero(rightCci)) return false;
+
+        // Recompute up to remove numerical error and guarantee orthonormality.
+        upCci = VectorMath.Normalize(VectorMath.Cross(rightCci, forwardCci));
+        if(VectorMath.IsZero(upCci)) return false;
+
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, upCci, out up)) return false;
+
+        return !VectorMath.IsZero(forward) &&
+               !VectorMath.IsZero(right) &&
+               !VectorMath.IsZero(up);
     }
 
     // TODO: This only works if the target is orbiting the same body as the vehicle. I want to support target velocity basis in any scenario.
     public static bool TryGetTargetVelocityBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 up
@@ -393,7 +446,7 @@ public static class HudBasis {
         right = new float3(0, 1, 0);
         up = new float3(0, 0, 1);
 
-        if(vehicle == null || camera == null || celestial == null) return false;
+        if(vehicle == null || camera == null || parentBody == null) return false;
 
         IOrbiter target = vehicle.Target;
         if(target == null) return false;
@@ -422,9 +475,9 @@ public static class HudBasis {
         double3 upCci = VectorMath.Normalize(VectorMath.Cross(rightCci, forwardCci));
         if(VectorMath.IsZero(upCci)) return false;
 
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, forwardCci, out forward)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, rightCci, out right)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, upCci, out up)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, upCci, out up)) return false;
 
         return !VectorMath.IsZero(forward) &&
                !VectorMath.IsZero(right) &&
@@ -434,7 +487,7 @@ public static class HudBasis {
     public static bool TryGetDockBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 up
@@ -450,7 +503,7 @@ public static class HudBasis {
     public static bool TryGetSurfaceVelocityBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 forward,
         out float3 right,
         out float3 up
@@ -459,17 +512,17 @@ public static class HudBasis {
         right = new float3(0, 1, 0);
         up = new float3(0, 0, 1);
 
-        if(vehicle == null || camera == null || celestial == null) return false;
+        if(vehicle == null || camera == null || parentBody == null) return false;
 
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
 
         if(VectorMath.IsZero(positionCci) || VectorMath.IsZero(velocityCci)) return false;
 
-        double3 positionCcf = celestial.GetCci2Ccf() * positionCci;
-        double3 velocityCcf = celestial.GetCci2Ccf() * velocityCci;
+        double3 positionCcf = parentBody.GetCci2Ccf() * positionCci;
+        double3 velocityCcf = parentBody.GetCci2Ccf() * velocityCci;
 
-        double omega = celestial.GetAngularVelocity();
+        double omega = parentBody.GetAngularVelocity();
         double3 angularVelocityCcf = new double3(0.0, 0.0, omega);
 
         double3 rotatingSurfaceVelocityCcf =
@@ -516,13 +569,13 @@ public static class HudBasis {
         upCcf = VectorMath.Normalize(VectorMath.Cross(rightCcf, forwardCcf));
         if(VectorMath.IsZero(upCcf)) return false;
 
-        double3 forwardCci = celestial.GetCcf2Cci() * forwardCcf;
-        double3 rightCci = celestial.GetCcf2Cci() * rightCcf;
-        double3 upCci = celestial.GetCcf2Cci() * upCcf;
+        double3 forwardCci = parentBody.GetCcf2Cci() * forwardCcf;
+        double3 rightCci = parentBody.GetCcf2Cci() * rightCcf;
+        double3 upCci = parentBody.GetCcf2Cci() * upCcf;
 
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, forwardCci, out forward)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, rightCci, out right)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, upCci, out up)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, upCci, out up)) return false;
 
         return !VectorMath.IsZero(forward) &&
                !VectorMath.IsZero(right) &&
@@ -532,7 +585,7 @@ public static class HudBasis {
     public static bool TryGetVlhBasisEgo(
         Vehicle vehicle,
         Camera camera,
-        Celestial celestial,
+        IParentBody parentBody,
         out float3 velocity,
         out float3 normal,
         out float3 radialOut
@@ -541,7 +594,7 @@ public static class HudBasis {
         normal = new float3(0, 0, 1);
         radialOut = new float3(0, 1, 0);
 
-        if(vehicle == null || camera == null || celestial == null) return false;
+        if(vehicle == null || camera == null || parentBody == null) return false;
 
         double3 positionCci = vehicle.GetPositionCci();
         double3 velocityCci = vehicle.GetVelocityCci();
@@ -555,16 +608,54 @@ public static class HudBasis {
         radialOutCci = VectorMath.Normalize(radialOutCci);
         if(VectorMath.IsZero(radialOutCci)) return false;
 
-        // Y = normal, perpendicular to velocity and radial out
+        // Y = normal
         double3 normalCci = VectorMath.Normalize(VectorMath.Cross(velocityCciDir, radialOutCci));
         if(VectorMath.IsZero(normalCci)) return false;
 
         if(VectorMath.IsZero(radialOutCci)) return false;
 
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, velocityCciDir, out velocity)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, radialOutCci, out radialOut)) return false;
-        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, normalCci, out normal)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, velocityCciDir, out velocity)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, radialOutCci, out radialOut)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, normalCci, out normal)) return false;
 
         return !VectorMath.IsZero(velocity) && !VectorMath.IsZero(radialOut) && !VectorMath.IsZero(normal);
+    }
+
+    public static bool TryGetAttitudeBasisEgo(
+        Vehicle vehicle,
+        Camera camera,
+        IParentBody parentBody,
+        out float3 forward,
+        out float3 right,
+        out float3 up
+    ) {
+        forward = new float3(1, 0, 0);
+        right = new float3(0, 1, 0);
+        up = new float3(0, 0, 1);
+
+        if(vehicle == null || camera == null || parentBody == null) return false;
+
+        doubleQuat body2Cci = vehicle.GetBody2Cci();
+
+        // Vehicle body-frame basis directions in CCI.
+        // ocal vehicle axes are:
+        // +X = forward
+        // +Y = right
+        // +Z = up
+        double3 forwardCci = body2Cci * new double3(1.0, 0.0, 0.0);
+        double3 rightCci = body2Cci * new double3(0.0, 1.0, 0.0);
+        double3 upCci = body2Cci * new double3(0.0, 0.0, 1.0);
+
+        if(VectorMath.IsZero(forwardCci)) return false;
+        if(VectorMath.IsZero(rightCci)) return false;
+        if(VectorMath.IsZero(upCci)) return false;
+
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, parentBody, upCci, out up)) return false;
+
+        return !VectorMath.IsZero(forward) &&
+               !VectorMath.IsZero(right) &&
+               !VectorMath.IsZero(up);
     }
 }

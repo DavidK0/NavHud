@@ -515,34 +515,132 @@ public sealed class HudSymbolRenderer {
     }
 }
 
-public class VelocityRenderer {
-    private readonly HudSymbolRenderer symbols;
-    public VelocityRenderer(HudSymbolRenderer symbols) {
-        this.symbols = symbols;
-    }
-    public void DrawVelocity(
+public interface IHudIndicatorRenderer {
+    void Draw(
         ImDrawListPtr drawList,
         Basis veloFrame,
         float3 center,
         float radius,
-        VelocitySettings settings
+        SymbolsSettings settings
+    );
+}
+
+public class VelocityRenderer : IHudIndicatorRenderer {
+    private readonly HudSymbolRenderer symbols;
+    public VelocityRenderer(HudSymbolRenderer symbols) {
+        this.symbols = symbols;
+    }
+    public void Draw(
+        ImDrawListPtr drawList,
+        Basis veloFrame,
+        float3 center,
+        float radius,
+        SymbolsSettings settings
     ) {
         float3 forward = veloFrame.forward;
         float3 up = veloFrame.up;
         float3 right = veloFrame.right;
 
-        float symbolSize = settings.Size;
-        float thickness = settings.LineThickness;
-
         float4 green = new float4(0.0f, 1.0f, 0.0f, 1.0f);
         float4 cyan = new float4(0.0f, 1.0f, 1.0f, 1.0f);
         float4 magenta = new float4(1.0f, 0.0f, 1.0f, 1.0f);
 
-        symbols.Draw(drawList, HudSymbol.Prograde, center, radius, symbolSize, thickness, green, forward, right, up);
-        symbols.Draw(drawList, HudSymbol.Retrograde, center, radius, symbolSize, thickness, green, -forward, -right, up);
-        symbols.Draw(drawList, HudSymbol.Normal, center, radius, symbolSize, thickness, magenta, right, -forward, up);
-        symbols.Draw(drawList, HudSymbol.Antinormal, center, radius, symbolSize, thickness, magenta, -right, forward, up);
-        symbols.Draw(drawList, HudSymbol.RadialOut, center, radius, symbolSize, thickness, cyan, up, right, -forward);
-        symbols.Draw(drawList, HudSymbol.RadialIn, center, radius, symbolSize, thickness, cyan, -up, right, forward);
+        symbols.Draw(drawList, HudSymbol.Prograde, center, radius, settings.Size, settings.LineThickness, green, forward, right, up);
+        symbols.Draw(drawList, HudSymbol.Retrograde, center, radius, settings.Size, settings.LineThickness, green, -forward, -right, up);
+        symbols.Draw(drawList, HudSymbol.Normal, center, radius, settings.Size, settings.LineThickness, magenta, right, -forward, up);
+        symbols.Draw(drawList, HudSymbol.Antinormal, center, radius, settings.Size, settings.LineThickness, magenta, -right, forward, up);
+        symbols.Draw(drawList, HudSymbol.RadialOut, center, radius, settings.Size, settings.LineThickness, cyan, up, right, -forward);
+        symbols.Draw(drawList, HudSymbol.RadialIn, center, radius, settings.Size, settings.LineThickness, cyan, -up, right, forward);
+    }
+}
+
+public class AttitudeIndicatorRenderer : IHudIndicatorRenderer {
+    private readonly HudSymbolRenderer symbols;
+    public AttitudeIndicatorRenderer(HudSymbolRenderer symbols) {
+        this.symbols = symbols;
+    }
+    public void Draw(
+        ImDrawListPtr drawList,
+        Basis veloFrame,
+        float3 center,
+        float radius,
+        SymbolsSettings settings
+    ) {
+        float3 forward = veloFrame.forward;
+        float3 up = veloFrame.up;
+        float3 right = veloFrame.right;
+
+        float4 pale_yellow = new float4(1f, 1f, .5f, 1f);
+
+        symbols.Draw(drawList, HudSymbol.Attitude, center, radius, settings.Size, settings.LineThickness, pale_yellow, forward, right, up);
+        symbols.Draw(drawList, HudSymbol.Antiattitude, center, radius, settings.Size, settings.LineThickness, pale_yellow, -forward, -right, up);
+    }
+}
+
+public class TargetIndicatorRenderer : IHudIndicatorRenderer {
+    private readonly HudSymbolRenderer symbols;
+    public TargetIndicatorRenderer(HudSymbolRenderer symbols) {
+        this.symbols = symbols;
+    }
+    public void Draw(
+        ImDrawListPtr drawList,
+        Basis veloFrame,
+        float3 center,
+        float radius,
+        SymbolsSettings settings
+    ) {
+        float3 forward = veloFrame.forward;
+        float3 up = veloFrame.up;
+        float3 right = veloFrame.right;
+
+        float4 magenta = new float4(1.0f, 0.0f, 1.0f, 1.0f);
+
+        symbols.Draw(drawList, HudSymbol.Target, center, radius, settings.Size, settings.LineThickness, magenta, forward, right, up);
+        symbols.Draw(drawList, HudSymbol.Antitarget, center, radius, settings.Size, settings.LineThickness, magenta, -forward, -right, up);
+    }
+}
+
+public class DockIndicatorRenderer : IHudIndicatorRenderer {
+    private readonly HudSymbolRenderer symbols;
+    public DockIndicatorRenderer(HudSymbolRenderer symbols) {
+        this.symbols = symbols;
+    }
+    public void Draw(
+        ImDrawListPtr drawList,
+        Basis veloFrame,
+        float3 center,
+        float radius,
+        SymbolsSettings settings
+    ) {
+        float3 forward = veloFrame.forward;
+        float3 up = veloFrame.up;
+        float3 right = veloFrame.right;
+
+        float4 red = new float4(1.0f, 0.0f, 0.0f, 1.0f);
+
+        symbols.Draw(drawList, HudSymbol.Cross, center, radius, settings.Size, settings.LineThickness, red, forward, right, up);
+    }
+}
+
+public class BurnIndicatorRenderer : IHudIndicatorRenderer {
+    private readonly HudSymbolRenderer symbols;
+    public BurnIndicatorRenderer(HudSymbolRenderer symbols) {
+        this.symbols = symbols;
+    }
+    public void Draw(
+        ImDrawListPtr drawList,
+        Basis veloFrame,
+        float3 center,
+        float radius,
+        SymbolsSettings settings
+    ) {
+        float3 forward = veloFrame.forward;
+        float3 up = veloFrame.up;
+        float3 right = veloFrame.right;
+
+        float4 blue = new float4(0.0f, 0.0f, 1.0f, 1.0f);
+
+        symbols.Draw(drawList, HudSymbol.Diamond, center, radius, settings.Size, settings.LineThickness, blue, forward, right, up);
+
     }
 }

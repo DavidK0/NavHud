@@ -12,7 +12,9 @@ public sealed class NavHudSettings {
     public NavFrame VelocityFrame = NavFrame.Auto;
 
     public GridSettings Grid = new();
-    public VelocitySettings Velocity = new();
+    public bool VelocityEnabled = true;
+
+    public SymbolsSettings Symbols = new();
 
     public bool IgnoreZoom = true;
     public float FixedSphereSize = 10.0f;
@@ -42,7 +44,7 @@ public sealed class NavHudSettings {
             VelocityFrame = VelocityFrame,
 
             Grid = Grid.Clone(),
-            Velocity = Velocity.Clone(),
+            Symbols = Symbols.Clone(),
 
             IgnoreZoom = IgnoreZoom,
             FixedSphereSize = FixedSphereSize,
@@ -93,10 +95,11 @@ public enum NavFrame {
 
     SurfVel,
     Vlh,
-    Burn,
     TVel,
 
+    Attitude,
     Tgt,
+    Burn,
     Dock
 }
 
@@ -115,14 +118,12 @@ public sealed class GridSettings {
     }
 }
 
-public sealed class VelocitySettings {
-    public bool Enabled = true;
-    public float Size = .01f;
-    public float LineThickness = 1f;
+public sealed class SymbolsSettings {
+    public float Size = .02f;
+    public float LineThickness = 5f;
 
-    public VelocitySettings Clone() {
-        return new VelocitySettings {
-            Enabled = Enabled,
+    public SymbolsSettings Clone() {
+        return new SymbolsSettings {
             Size = Size,
             LineThickness = LineThickness
         };
@@ -221,15 +222,16 @@ internal static class NavHudSettingsToml {
             "grid_color",
             s.Grid.Color);
 
-        s.Velocity.Enabled = block.GetBool(
+        s.VelocityEnabled = block.GetBool(
             "velocity_enabled",
-            s.Velocity.Enabled);
-        s.Velocity.Size = block.GetFloat(
+            s.VelocityEnabled);
+
+        s.Symbols.Size = block.GetFloat(
             "velocity_size",
-            s.Velocity.Size);
-        s.Velocity.LineThickness = block.GetFloat(
+            s.Symbols.Size);
+        s.Symbols.LineThickness = block.GetFloat(
             "velocity_line_thickness",
-            s.Velocity.LineThickness);
+            s.Symbols.LineThickness);
 
         s.IgnoreZoom = block.GetBool("ignore_zoom", s.IgnoreZoom);
         s.FixedSphereSize = block.GetFloat("fixed_sphere_size", s.FixedSphereSize);
@@ -266,10 +268,10 @@ internal static class NavHudSettingsToml {
         writer.Write("zoom_scale", s.ZoomScale);
 
         writer.Write("show_grid_lines", s.Grid.Enabled);
-        writer.Write("show_velocity", s.Velocity.Enabled);
+        writer.Write("show_velocity", s.VelocityEnabled);
 
-        writer.Write("symbol_size", s.SymbolSize);
-        writer.Write("symbol_line_thickness", s.SymbolLineThickness);
+        writer.Write("symbol_size", s.Symbols.Size);
+        writer.Write("symbol_line_thickness", s.Symbols.LineThickness);
 
         WriteIndicator(writer, "prograde", s.Prograde);
         WriteIndicator(writer, "retrograde", s.Retrograde);
