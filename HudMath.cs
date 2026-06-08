@@ -2,6 +2,11 @@
 using KSA;
 namespace NavHud;
 
+public sealed class Basis {
+    public float3 forward { get; init; }
+    public float3 right { get; init; }
+    public float3 up { get; init; }
+}
 public static class VectorMath {
     private const float FloatEpsilon = 1e-6f;
     private const double DoubleEpsilon = 1e-12;
@@ -153,6 +158,7 @@ public static class EgoTransform {
             directionCci.Y * directionCci.Y +
             directionCci.Z * directionCci.Z
         );
+
         if(len <= 0.0) {
             return false;
         }
@@ -206,19 +212,6 @@ public static class EgoTransform {
 
         vehicleEcl = celestial.GetPositionEcl() + vehicleCce;
         return true;
-    }
-
-    private static float3 DirectionToEgo(
-        Camera camera,
-        double3 originEcl,
-        double3 directionEcl
-    ) {
-        double3 originEgo = camera.EclToEgo(originEcl);
-        double3 pointEgo = camera.EclToEgo(originEcl + directionEcl);
-
-        double3 directionEgo = pointEgo - originEgo;
-
-        return VectorMath.NormalizeToFloat(directionEgo);
     }
 }
 
@@ -387,6 +380,7 @@ public static class HudBasis {
         return false;
     }
 
+    // TODO: This only works if the target is orbiting the same body as the vehicle. I want to support target velocity basis in any scenario.
     public static bool TryGetTargetVelocityBasisEgo(
         Vehicle vehicle,
         Camera camera,
@@ -399,8 +393,42 @@ public static class HudBasis {
         right = new float3(0, 1, 0);
         up = new float3(0, 0, 1);
 
-        // Needs access to NavigationTarget.VelocityCci.
-        return false;
+        if(vehicle == null || camera == null || celestial == null) return false;
+
+        IOrbiter target = vehicle.Target;
+        if(target == null) return false;
+
+        double3 vehicleVelocityCci = vehicle.GetVelocityCci();
+        double3 targetVelocityCci = target.GetVelocityCci();
+
+        // Velocity of the vehicle relative to the target.
+        double3 relativeVelocityCci = vehicleVelocityCci - targetVelocityCci;
+        if(VectorMath.IsZero(relativeVelocityCci)) return false;
+
+        double3 forwardCci = VectorMath.Normalize(relativeVelocityCci);
+
+        // Use the target position as the local radial reference.
+        // This gives the frame a stable "up" direction around the target.
+        double3 targetPositionCci = target.GetPositionCci();
+        if(VectorMath.IsZero(targetPositionCci)) return false;
+
+        double3 radialUpCci = VectorMath.Normalize(targetPositionCci);
+
+        // right = forward x up-reference
+        double3 rightCci = VectorMath.Normalize(VectorMath.Cross(forwardCci, radialUpCci));
+        if(VectorMath.IsZero(rightCci)) return false;
+
+        // Recompute up so the basis is exactly orthonormal.
+        double3 upCci = VectorMath.Normalize(VectorMath.Cross(rightCci, forwardCci));
+        if(VectorMath.IsZero(upCci)) return false;
+
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, forwardCci, out forward)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, rightCci, out right)) return false;
+        if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, upCci, out up)) return false;
+
+        return !VectorMath.IsZero(forward) &&
+               !VectorMath.IsZero(right) &&
+               !VectorMath.IsZero(up);
     }
 
     public static bool TryGetDockBasisEgo(
@@ -438,30 +466,53 @@ public static class HudBasis {
 
         if(VectorMath.IsZero(positionCci) || VectorMath.IsZero(velocityCci)) return false;
 
-        // Convert position and inertial velocity into the rotating body-fixed frame.
         double3 positionCcf = celestial.GetCci2Ccf() * positionCci;
         double3 velocityCcf = celestial.GetCci2Ccf() * velocityCci;
 
-        // Surface velocity should be horizontal motion over the rotating body's surface.
-        // Remove radial motion so the forward axis lies in the local tangent plane.
-        double3 upCcf = VectorMath.Normalize(positionCcf);
+        double omega = celestial.GetAngularVelocity();
+        double3 angularVelocityCcf = new double3(0.0, 0.0, omega);
+
+        double3 rotatingSurfaceVelocityCcf =
+            VectorMath.Cross(angularVelocityCcf, positionCcf);
+
+        double3 surfaceRelativeVelocityCcf =
+            velocityCcf - rotatingSurfaceVelocityCcf;
+
+        if(VectorMath.IsZero(surfaceRelativeVelocityCcf)) return false;
+
+        double3 forwardCcf = VectorMath.Normalize(surfaceRelativeVelocityCcf);
+        if(VectorMath.IsZero(forwardCcf)) return false;
+
+        // Reference "up" only determines roll around forward.
+        // For a spherical body, radial up is a reasonable reference.
+        double3 referenceUpCcf = VectorMath.Normalize(positionCcf);
+        if(VectorMath.IsZero(referenceUpCcf)) return false;
+
+        // Remove any component of referenceUp that lies along forward.
+        // This gives an "up" that is perpendicular to forward.
+        double3 upCcf =
+            referenceUpCcf - forwardCcf * VectorMath.Dot(referenceUpCcf, forwardCcf);
+
+        // If forward is nearly parallel to radial up/down, radial up cannot define roll.
+        // Fall back to another reference axis.
+        if(VectorMath.IsZero(upCcf)) {
+            double3 fallback = new double3(0.0, 0.0, 1.0);
+
+            if(Math.Abs(VectorMath.Dot(fallback, forwardCcf)) > 0.99) {
+                fallback = new double3(1.0, 0.0, 0.0);
+            }
+
+            upCcf = fallback - forwardCcf * VectorMath.Dot(fallback, forwardCcf);
+        }
+
+        upCcf = VectorMath.Normalize(upCcf);
         if(VectorMath.IsZero(upCcf)) return false;
 
-        double radialSpeed = VectorMath.Dot(velocityCcf, upCcf);
-        double3 surfaceVelocityCcf = velocityCcf - upCcf * radialSpeed;
-
-        if(VectorMath.IsZero(surfaceVelocityCcf)) return false;
-
-        double3 forwardCcf = VectorMath.Normalize(surfaceVelocityCcf);
-
-        // Local right for a forward-facing surface frame:
-        // forward = surface velocity
-        // up      = local radial out
-        // right   = forward x up
+        // Depending on handedness, you may want one of these two.
         double3 rightCcf = VectorMath.Normalize(VectorMath.Cross(forwardCcf, upCcf));
         if(VectorMath.IsZero(rightCcf)) return false;
 
-        // Recompute up to make the frame exactly orthonormal.
+        // Recompute up to remove numerical error and guarantee orthonormality.
         upCcf = VectorMath.Normalize(VectorMath.Cross(rightCcf, forwardCcf));
         if(VectorMath.IsZero(upCcf)) return false;
 
@@ -473,7 +524,9 @@ public static class HudBasis {
         if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, rightCci, out right)) return false;
         if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, upCci, out up)) return false;
 
-        return !VectorMath.IsZero(forward) && !VectorMath.IsZero(right) && !VectorMath.IsZero(up);
+        return !VectorMath.IsZero(forward) &&
+               !VectorMath.IsZero(right) &&
+               !VectorMath.IsZero(up);
     }
 
     public static bool TryGetVlhBasisEgo(
@@ -481,12 +534,12 @@ public static class HudBasis {
         Camera camera,
         Celestial celestial,
         out float3 velocity,
-        out float3 radialOut,
-        out float3 normal
+        out float3 normal,
+        out float3 radialOut
     ) {
         velocity = new float3(1, 0, 0);
-        radialOut = new float3(0, 1, 0);
         normal = new float3(0, 0, 1);
+        radialOut = new float3(0, 1, 0);
 
         if(vehicle == null || camera == null || celestial == null) return false;
 
@@ -496,19 +549,16 @@ public static class HudBasis {
         if(VectorMath.IsZero(positionCci) || VectorMath.IsZero(velocityCci)) return false;
 
         double3 velocityCciDir = VectorMath.Normalize(velocityCci);
-        double3 radialOutCci = VectorMath.Normalize(positionCci);
 
-        if(VectorMath.IsZero(velocityCciDir) || VectorMath.IsZero(radialOutCci)) return false;
+        // Z = radial out / up, perpendicular to velocity
+        double3 radialOutCci = positionCci - velocityCciDir * VectorMath.Dot(positionCci, velocityCciDir);
+        radialOutCci = VectorMath.Normalize(radialOutCci);
+        if(VectorMath.IsZero(radialOutCci)) return false;
 
-        // Orbit normal. This is perpendicular to the orbital plane.
-        double3 normalCci = VectorMath.Normalize(VectorMath.Cross(positionCci, velocityCci));
+        // Y = normal, perpendicular to velocity and radial out
+        double3 normalCci = VectorMath.Normalize(VectorMath.Cross(velocityCciDir, radialOutCci));
         if(VectorMath.IsZero(normalCci)) return false;
 
-        // Orthonormal VLH basis:
-        // X = velocity
-        // Z = orbit normal
-        // Y = Z x X, which is mostly radial-out but exactly perpendicular to velocity.
-        radialOutCci = VectorMath.Normalize(VectorMath.Cross(normalCci, velocityCciDir));
         if(VectorMath.IsZero(radialOutCci)) return false;
 
         if(!EgoTransform.TryCciDirectionToEgo(vehicle, camera, celestial, velocityCciDir, out velocity)) return false;

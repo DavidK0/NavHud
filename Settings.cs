@@ -11,11 +11,12 @@ public sealed class NavHudSettings {
     public NavFrame GridFrame = NavFrame.Auto;
     public NavFrame VelocityFrame = NavFrame.Auto;
 
+    public GridSettings Grid = new();
+    public VelocitySettings Velocity = new();
+
     public bool IgnoreZoom = true;
     public float FixedSphereSize = 10.0f;
     public float ZoomScale = 100.0f;
-
-    public bool ShowGridLines = true;
 
     public float SymbolSize = 0.03f;
     public float SymbolLineThickness = 2.0f;
@@ -33,22 +34,19 @@ public sealed class NavHudSettings {
     public IndicatorSettings DockingAlignment = new(HudSymbol.DockingAlignment, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
     public IndicatorSettings Maneuver = new(HudSymbol.Maneuver, new float4(0.0f, 0.0f, 1.0f, 1.0f)); // Blue
 
-    public GridSettings Grid = new();
-
     public NavHudSettings Clone() {
         return new NavHudSettings {
             Enabled = Enabled,
+
             GridFrame = GridFrame,
+            VelocityFrame = VelocityFrame,
+
+            Grid = Grid.Clone(),
+            Velocity = Velocity.Clone(),
+
             IgnoreZoom = IgnoreZoom,
             FixedSphereSize = FixedSphereSize,
             ZoomScale = ZoomScale,
-
-            ShowGridLines = ShowGridLines,
-
-            SymbolSize = SymbolSize,
-            SymbolLineThickness = SymbolLineThickness,
-
-            Grid = Grid.Clone(),
 
             Prograde = Prograde.Clone(),
             Retrograde = Retrograde.Clone(),
@@ -93,7 +91,7 @@ public enum NavFrame {
     Enu,
     Lvlh,
 
-    Surf,
+    SurfVel,
     Vlh,
     Burn,
     TVel,
@@ -103,6 +101,7 @@ public enum NavFrame {
 }
 
 public sealed class GridSettings {
+    public bool Enabled = true;
     public int Segments = 64;
     public int Rings = 12;
     public float4 Color = float4.One;
@@ -112,6 +111,20 @@ public sealed class GridSettings {
             Segments = Segments,
             Rings = Rings,
             Color = Color
+        };
+    }
+}
+
+public sealed class VelocitySettings {
+    public bool Enabled = true;
+    public float Size = .01f;
+    public float LineThickness = 1f;
+
+    public VelocitySettings Clone() {
+        return new VelocitySettings {
+            Enabled = Enabled,
+            Size = Size,
+            LineThickness = LineThickness
         };
     }
 }
@@ -190,17 +203,37 @@ internal static class NavHudSettingsToml {
 
         s.Enabled = block.GetBool("enabled", s.Enabled);
 
-        if(block.TryEnum("mode", out NavFrame mode))
-            s.GridFrame = mode;
+        if(block.TryEnum("grid_frame", out NavFrame gridFrame))
+            s.GridFrame = gridFrame;
+        if(block.TryEnum("velocity_frame", out NavFrame velocityFrame))
+            s.VelocityFrame = velocityFrame;
+
+        s.Grid.Enabled = block.GetBool(
+            "grid_enabled",
+            s.Grid.Enabled);
+        s.Grid.Segments = block.GetInt(
+            "grid_segments",
+            s.Grid.Segments);
+        s.Grid.Rings = block.GetInt(
+            "grid_rings",
+            s.Grid.Rings);
+        s.Grid.Color = block.GetFloat4(
+            "grid_color",
+            s.Grid.Color);
+
+        s.Velocity.Enabled = block.GetBool(
+            "velocity_enabled",
+            s.Velocity.Enabled);
+        s.Velocity.Size = block.GetFloat(
+            "velocity_size",
+            s.Velocity.Size);
+        s.Velocity.LineThickness = block.GetFloat(
+            "velocity_line_thickness",
+            s.Velocity.LineThickness);
 
         s.IgnoreZoom = block.GetBool("ignore_zoom", s.IgnoreZoom);
         s.FixedSphereSize = block.GetFloat("fixed_sphere_size", s.FixedSphereSize);
         s.ZoomScale = block.GetFloat("zoom_scale", s.ZoomScale);
-
-        s.ShowGridLines = block.GetBool("show_grid_lines", s.ShowGridLines);
-
-        s.SymbolSize = block.GetFloat("symbol_size", s.SymbolSize);
-        s.SymbolLineThickness = block.GetFloat("symbol_line_thickness", s.SymbolLineThickness);
 
         ReadIndicator(block, "prograde", s.Prograde);
         ReadIndicator(block, "retrograde", s.Retrograde);
@@ -212,18 +245,6 @@ internal static class NavHudSettingsToml {
         ReadIndicator(block, "antitarget", s.Antitarget);
         ReadIndicator(block, "docking_alignment", s.DockingAlignment);
         ReadIndicator(block, "maneuver", s.Maneuver);
-
-        s.Grid.Segments = block.GetInt(
-            "grid_segments",
-            s.Grid.Segments);
-
-        s.Grid.Rings = block.GetInt(
-            "grid_rings",
-            s.Grid.Rings);
-
-        s.Grid.Color = block.GetFloat4(
-            "grid_color",
-            s.Grid.Color);
 
         return s;
     }
@@ -237,13 +258,15 @@ internal static class NavHudSettingsToml {
 
         writer.BeginSettingsBlock(saveId);
 
-        writer.Write("mode", s.GridFrame);
+        writer.Write("grid_frame", s.GridFrame);
+        writer.Write("velocity_frame", s.VelocityFrame);
 
         writer.Write("ignore_zoom", s.IgnoreZoom);
         writer.Write("fixed_sphere_size", s.FixedSphereSize);
         writer.Write("zoom_scale", s.ZoomScale);
 
-        writer.Write("show_grid_lines", s.ShowGridLines);
+        writer.Write("show_grid_lines", s.Grid.Enabled);
+        writer.Write("show_velocity", s.Velocity.Enabled);
 
         writer.Write("symbol_size", s.SymbolSize);
         writer.Write("symbol_line_thickness", s.SymbolLineThickness);

@@ -11,7 +11,7 @@ namespace NavHud;
 public class NavHudModEntryPoint {
     private static Harmony? _harmony;
 
-    private static NavHudRenderer Renderer;
+    private static NavHudRenderer? Renderer;
 
     [StarMapAllModsLoaded]
     public static void OnFullyLoaded() {
@@ -43,7 +43,7 @@ public class NavHudModEntryPoint {
 
         ImGui.Separator();
 
-        ImGui.Checkbox("Show Grid Lines", ref settings.ShowGridLines);
+        ImGui.Checkbox("Show Grid Lines", ref settings.Grid.Enabled);
 
         if(ImGui.BeginMenu("Grid Orientation")) {
 
@@ -79,16 +79,18 @@ public class NavHudModEntryPoint {
                 settings.VelocityFrame = NavFrame.Auto;
             }
 
-            if(ImGui.MenuItem("Surface", "", settings.VelocityFrame == NavFrame.Cce)) {
-                settings.VelocityFrame = NavFrame.Cce;
+            if(ImGui.MenuItem("Surface", "", settings.VelocityFrame == NavFrame.SurfVel)) {
+                settings.VelocityFrame = NavFrame.SurfVel;
             }
 
-            if(ImGui.MenuItem("Orbit", "", settings.VelocityFrame == NavFrame.Cci)) {
-                settings.VelocityFrame = NavFrame.Cci;
+            if(ImGui.MenuItem("Orbit", "", settings.VelocityFrame == NavFrame.Vlh)) {
+                settings.VelocityFrame = NavFrame.Vlh;
             }
 
-            if(ImGui.MenuItem("Target", "", settings.VelocityFrame == NavFrame.Enu)) {
-                settings.VelocityFrame = NavFrame.Enu;
+            if(Program.ControlledVehicle != null && Program.ControlledVehicle.Target != null) {
+                if(ImGui.MenuItem("Target", "", settings.VelocityFrame == NavFrame.TVel)) {
+                    settings.VelocityFrame = NavFrame.TVel;
+                }
             }
 
             ImGui.EndMenu();
@@ -101,13 +103,13 @@ public class NavHudModEntryPoint {
             //ImGui.Checkbox("Show Symbols", ref settings.ShowSymbols);
             ImGui.SliderFloat(
                 "Symbol Line Thickness",
-                ref settings.SymbolLineThickness,
+                ref settings.Velocity.LineThickness,
                 1f,
                 15.0f
             );
             ImGui.SliderFloat(
                 "Symbol Size",
-                ref settings.SymbolSize,
+                ref settings.Velocity.Size,
                 .01f,
                 .3f
             );
@@ -118,9 +120,12 @@ public class NavHudModEntryPoint {
 
     [StarMapAfterGui]
     public static void OnAfterUi(double dt) {
+        if(Renderer == null)
+            return;
+
         // If the vehicle doesn't have a target and the current mode is a target-relative mode, change the mode to auto
         if(NavHudSettingsStore.Current.GridFrame is NavFrame.Tgt or NavFrame.TVel or NavFrame.Dock) {
-            IOrbiter? target = Program.ControlledVehicle.Target;
+            IOrbiter? target = Program.ControlledVehicle?.Target;
             if(target == null) {
                 NavHudSettingsStore.Current.GridFrame = NavFrame.Auto;
             }

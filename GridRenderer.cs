@@ -103,42 +103,23 @@ public sealed class GridRenderer {
             up * (MathF.Sin(alt) * radius);
     }
 
-    public void DrawEnu(ImDrawListPtr draw_list, NavHudFrame frame, GridSettings settings) {
-        if(frame.EastEgo is not { } east) return;
-        if(frame.NorthEgo is not { } north) return;
-        if(frame.UpEgo is not { } up) return;
-
-        DrawAzAltWireSphere(
-            draw_list: draw_list,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
-            azSegments: settings.Segments,
-            altRings: settings.Rings,
-            color: settings.Color,
-            east: east,
-            north: north,
-            up: up
-        );
-    }
-
     public void DrawGrid(
         ImDrawListPtr drawList,
-        NavHudFrame frame,
+        Basis frame,
+        float3 center,
+        float radius,
         GridSettings settings) {
-        if(frame.EastEgo is not { } x) return;
-        if(frame.NorthEgo is not { } y) return;
-        if(frame.UpEgo is not { } z) return;
 
         DrawBasisWireSphere(
             draw_list: drawList,
-            center: frame.CenterEgo,
-            radius: frame.Radius,
+            center: center,
+            radius: radius,
             segments: settings.Segments,
             rings: settings.Rings,
             color: settings.Color,
-            xAxis: x,
-            yAxis: y,
-            zAxis: z
+            forward: frame.forward,
+            right: frame.right,
+            up: frame.up
         );
     }
 
@@ -149,9 +130,9 @@ public sealed class GridRenderer {
     int segments,
     int rings,
     float4 color,
-    float3 xAxis,
-    float3 yAxis,
-    float3 zAxis
+    float3 forward,
+    float3 right,
+    float3 up
 ) {
         if(radius <= 0.0f) return;
         if(segments < 4) return;
@@ -172,15 +153,15 @@ public sealed class GridRenderer {
 
                 float3 p0 =
                     center +
-                    xAxis * (MathF.Cos(a0) * ringRadius) +
-                    yAxis * (MathF.Sin(a0) * ringRadius) +
-                    zAxis * z;
+                    forward * (MathF.Cos(a0) * ringRadius) +
+                    right * (MathF.Sin(a0) * ringRadius) +
+                    up * z;
 
                 float3 p1 =
                     center +
-                    xAxis * (MathF.Cos(a1) * ringRadius) +
-                    yAxis * (MathF.Sin(a1) * ringRadius) +
-                    zAxis * z;
+                    forward * (MathF.Cos(a1) * ringRadius) +
+                    right * (MathF.Sin(a1) * ringRadius) +
+                    up * z;
 
                 lines.Line(draw_list, p0, p1, color);
             }
@@ -198,15 +179,15 @@ public sealed class GridRenderer {
 
                 float3 p0 =
                     center +
-                    xAxis * (MathF.Sin(theta0) * MathF.Cos(phi) * radius) +
-                    yAxis * (MathF.Sin(theta0) * MathF.Sin(phi) * radius) +
-                    zAxis * (MathF.Cos(theta0) * radius);
+                    forward * (MathF.Sin(theta0) * MathF.Cos(phi) * radius) +
+                    right * (MathF.Sin(theta0) * MathF.Sin(phi) * radius) +
+                    up * (MathF.Cos(theta0) * radius);
 
                 float3 p1 =
                     center +
-                    xAxis * (MathF.Sin(theta1) * MathF.Cos(phi) * radius) +
-                    yAxis * (MathF.Sin(theta1) * MathF.Sin(phi) * radius) +
-                    zAxis * (MathF.Cos(theta1) * radius);
+                    forward * (MathF.Sin(theta1) * MathF.Cos(phi) * radius) +
+                    right * (MathF.Sin(theta1) * MathF.Sin(phi) * radius) +
+                    up * (MathF.Cos(theta1) * radius);
 
                 lines.Line(draw_list, p0, p1, color);
             }
