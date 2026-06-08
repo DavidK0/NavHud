@@ -85,6 +85,16 @@ internal sealed class SaveScopedSettingsStore<TSettings> {
         }
     }
 
+    public void Save(string saveId) {
+        if(string.IsNullOrEmpty(saveId))
+            return;
+
+        if(!_bySaveId.TryGetValue(saveId, out TSettings? settings))
+            return;
+
+        SaveOne(saveId, settings);
+    }
+
     private void SaveOne(string saveId, TSettings settings) {
         string configPath = GetConfigPath(saveId);
         string saveDir = Path.GetDirectoryName(configPath)!;

@@ -6,6 +6,24 @@ using KSA;
 
 namespace NavHud;
 
+public enum NavFrame {
+    Auto,
+
+    Cce,
+    Cci,
+    Enu,
+    Lvlh,
+
+    SurfVel,
+    Vlh,
+    TVel,
+
+    Attitude,
+    Tgt,
+    Burn,
+    Dock
+}
+
 public unsafe sealed class NavHudRenderer {
     private readonly ImDrawLineRenderer lines;
 
