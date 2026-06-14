@@ -116,4 +116,14 @@ public static class EgoTransform {
         vehicleEcl = parentBody.GetPositionEcl() + vehicleCce;
         return true;
     }
+
+    public static double3 CciToEgo(
+        double3 cci,
+        Camera camera,
+        IParentBody parentBody
+    ) {
+        double3 cce = parentBody.GetCci2Cce() * cci;
+        double3 ecl = parentBody.GetPositionEcl() + cce;
+        return camera.EclToEgo(ecl);
+    }
 }

@@ -1,21 +1,23 @@
 Current features:
- - 4 grid modes (CCE, CCI, ENU, LVLH)
- - 3 velocity modes (Surface, Orbit, Target)
- - attitude/antiattitude indicator
- - target/antitarget indicators when a target is selected
- - togglable zoom-based or fixed size for the grids and attitude indicator
- - Prograde/retrograde, normal/antinormal, radial in/out for orbital velocity
- - per-save config files, saved in `saves/`
- - line thickness/symbol scaling
- TODO:
- - autopilot indicator when autopilot is on + tracking line
- - Docking port alignment indicator when a docking port is selected.
- - Color/symbol selection for all indicators.
- - better grid display/more options
- - Option to show only some indicators, e.g. only prograde/retrograde
- - planet (and other object) markers
- - target tracking
- - trace
- - move from per-save config to universal config?
- - text drawn on the HUD (e.g. speed)
- - Option to disable attitude markers
+- 4 grid modes (CCE, CCI, ENU, LVLH)
+- 3 velocity modes (Surface, Orbit, Target)
+- attitude/antiattitude indicator
+- target/antitarget indicators when a target is selected
+- togglable zoom-based or fixed size for the grids and attitude indicator
+- Prograde/retrograde, normal/antinormal, radial in/out for orbital velocity
+- per-save config files, saved in `saves/`
+- line thickness/symbol scaling
+- 3d docking trajectories
+TODO:
+- autopilot indicator when autopilot is on + tracking line
+- Docking port alignment indicator when a docking port is selected.
+- Color/symbol selection for all indicators.
+- better grid display/more options
+- Option to show only some indicators, e.g. only prograde/retrograde
+- planet (and other object) markers
+- target tracking
+- trace
+- move from per-save config to universal config?
+- text drawn on the HUD (e.g. speed)
+- Option to disable attitude markers
+- constellations

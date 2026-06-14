@@ -3,7 +3,7 @@
 namespace NavHud;
 
 public sealed class NavHudSettings {
-    public bool Enabled = true;
+    public bool RendezvousTrackEnabled = true;
 
     public NavFrame GridFrame = NavFrame.Auto;
     public NavFrame VelocityFrame = NavFrame.Auto;
@@ -17,9 +17,12 @@ public sealed class NavHudSettings {
     public float FixedSphereSize = 10.0f;
     public float ZoomScale = 100.0f;
 
+    public float RendezvousTrackTimeStep = 10;
+    public float RendezvousTrackMaxTime = 10000;
+
     public NavHudSettings Clone() {
         return new NavHudSettings {
-            Enabled = Enabled,
+            RendezvousTrackEnabled = RendezvousTrackEnabled,
 
             GridFrame = GridFrame,
             VelocityFrame = VelocityFrame,
@@ -138,7 +141,7 @@ internal static class NavHudSettingsToml {
     public static NavHudSettings Read(SettingsBlock block) {
         var s = new NavHudSettings();
 
-        s.Enabled = block.GetBool("enabled", s.Enabled);
+        s.RendezvousTrackEnabled = block.GetBool("rendezvous_track_enabled", s.RendezvousTrackEnabled);
 
         if(block.TryEnum("grid_frame", out NavFrame gridFrame))
             s.GridFrame = gridFrame;
@@ -173,6 +176,13 @@ internal static class NavHudSettingsToml {
         s.FixedSphereSize = block.GetFloat("fixed_sphere_size", s.FixedSphereSize);
         s.ZoomScale = block.GetFloat("zoom_scale", s.ZoomScale);
 
+        s.RendezvousTrackTimeStep = block.GetFloat(
+            "rendezvous_track_time_step",
+            s.RendezvousTrackTimeStep);
+        s.RendezvousTrackMaxTime = block.GetFloat(
+            "rendezvous_track_max_time",
+            s.RendezvousTrackMaxTime);
+
         return s;
     }
 
@@ -183,7 +193,7 @@ internal static class NavHudSettingsToml {
 
         writer.BeginSettingsBlock(saveId);
 
-        writer.Write("enabled", s.Enabled);
+        writer.Write("rendezvous_track_enabled", s.RendezvousTrackEnabled);
 
         writer.Write("grid_frame", s.GridFrame);
         writer.Write("velocity_frame", s.VelocityFrame);
@@ -201,6 +211,9 @@ internal static class NavHudSettingsToml {
         writer.Write("grid_segments", s.Grid.Segments);
         writer.Write("grid_rings", s.Grid.Rings);
         writer.Write("grid_color", s.Grid.Color);
+
+        writer.Write("rendezvous_track_time_step", s.RendezvousTrackTimeStep);
+        writer.Write("rendezvous_track_max_time", s.RendezvousTrackMaxTime);
 
         writer.EndBlock();
     }

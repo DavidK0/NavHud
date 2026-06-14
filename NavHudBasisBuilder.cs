@@ -3,7 +3,25 @@ using KSA;
 
 namespace NavHud;
 
-public static class NavReferenceFrameBuilderBuilder {
+public enum NavFrame {
+    Auto,
+
+    Cce,
+    Cci,
+    Enu,
+    Lvlh,
+
+    SurfVel,
+    Vlh,
+    TVel,
+
+    Attitude,
+    Tgt,
+    Burn,
+    Dock
+}
+
+public static class NavReferenceBasisBuilder {
     public static bool TryCreate(
         Vehicle? vehicle,
         Camera? camera,

@@ -28,7 +28,6 @@ public class NavHudModEntryPoint {
     public static void DrawMenu() {
         NavHudSettings settings = NavHudSettingsStore.Current;
 
-        ImGui.Checkbox("Enabled", ref settings.Enabled);
 
         ImGui.Checkbox("Ignore Zoom", ref settings.IgnoreZoom);
 
@@ -72,6 +71,7 @@ public class NavHudModEntryPoint {
 
         ImGui.Separator();
 
+        if(ImGui.Checkbox("Show Velocity", ref settings.VelocityEnabled));
 
         if(ImGui.BeginMenu("Velocity Mode")) {
 
@@ -97,10 +97,7 @@ public class NavHudModEntryPoint {
         }
 
 
-        // Add a checkbox for showing symbols.
-        // If symbols are shown, add drop down menu which has: slider for symbol line thickness, and checkbox for showing arrows to symbols
         if(ImGui.BeginMenu("Symbols")) {
-            //ImGui.Checkbox("Show Symbols", ref settings.ShowSymbols);
             ImGui.SliderFloat(
                 "Symbol Line Thickness",
                 ref settings.Symbols.LineThickness,
@@ -113,7 +110,14 @@ public class NavHudModEntryPoint {
                 .01f,
                 .3f
             );
-            //ImGui.Checkbox("Show Arrows To Symbols", ref settings.ShowArrowsToSymbols);
+            ImGui.EndMenu();
+        }
+
+        ImGui.Separator();
+
+        if(ImGui.BeginMenu("Rendezvous Track")) {
+            ImGui.Checkbox("Enabled", ref settings.RendezvousTrackEnabled);
+            ImGui.SliderFloat("Track Length (s)", ref settings.RendezvousTrackMaxTime, 60f, 20000.0f);
             ImGui.EndMenu();
         }
     }

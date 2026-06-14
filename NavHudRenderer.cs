@@ -1,34 +1,19 @@
 ﻿
 using Brutal.ImGuiApi;
-using Brutal.Logging;
 using Brutal.Numerics;
 using KSA;
+using static KSA.Rendering.Lighting.CascadedShadowSystem;
 
 namespace NavHud;
 
-public enum NavFrame {
-    Auto,
 
-    Cce,
-    Cci,
-    Enu,
-    Lvlh,
-
-    SurfVel,
-    Vlh,
-    TVel,
-
-    Attitude,
-    Tgt,
-    Burn,
-    Dock
-}
 
 public unsafe sealed class NavHudRenderer {
     private readonly ImDrawLineRenderer lines;
 
     private readonly GridRenderer gridRenderer;
     private readonly VelocityRenderer velocityRenderer;
+    private readonly RendezvousTrackRenderer rendezvousTrackRenderer;
 
     private readonly AttitudeIndicatorRenderer attitudeRenderer;
     private readonly TargetIndicatorRenderer targetRenderer;
@@ -37,9 +22,11 @@ public unsafe sealed class NavHudRenderer {
 
     public NavHudRenderer() {
         lines = new ImDrawLineRenderer();
-        var symbolRenderer = new HudSymbolRenderer(lines);
+        HudSymbolRenderer symbolRenderer = new HudSymbolRenderer(lines);
+
         gridRenderer = new GridRenderer(lines);
         velocityRenderer = new VelocityRenderer(symbolRenderer);
+        rendezvousTrackRenderer = new RendezvousTrackRenderer(lines);
 
         attitudeRenderer = new AttitudeIndicatorRenderer(symbolRenderer);
         targetRenderer = new TargetIndicatorRenderer(symbolRenderer);
@@ -49,7 +36,6 @@ public unsafe sealed class NavHudRenderer {
 
     public void Draw(double dt, NavHudSettings? settings) {
         if(settings == null) return;
-        if(!settings.Enabled) return;
 
         Vehicle vehicle = Program.ControlledVehicle;
         Camera camera = Program.GetMainCamera();
@@ -58,7 +44,7 @@ public unsafe sealed class NavHudRenderer {
             return;
         }
 
-        IParentBody parentBody = (IParentBody)vehicle.Orbit.Parent;
+        IParentBody parentBody = vehicle.Orbit.Parent;
 
         // CREATE WINDOW
         ImGuiViewport* viewport = ImGui.GetMainViewport();
@@ -91,6 +77,16 @@ public unsafe sealed class NavHudRenderer {
             ? VectorMath.Length(centerf) * settings.ZoomScale
             : settings.FixedSphereSize;
 
+        DrawGrid(draw_list, vehicle, camera, parentBody, centerf, radius, settings);
+        DrawVelocity(draw_list, vehicle, camera, parentBody, centerf, radius, settings);
+        DrawRendezvousTrack(draw_list, vehicle, camera, settings);
+
+        ImGui.End();
+    }
+
+    private void DrawGrid(ImDrawListPtr draw_list, Vehicle vehicle, Camera camera, IParentBody parentBody, float3 center, float radius, NavHudSettings settings) {
+        if(!settings.Grid.Enabled) return;
+
         NavFrame resolvedGridFrame;
         if(settings.GridFrame == NavFrame.Auto) {
             switch(vehicle.VehicleRegion) {
@@ -110,11 +106,13 @@ public unsafe sealed class NavHudRenderer {
         } else {
             resolvedGridFrame = settings.GridFrame;
         }
-        if(settings.Grid.Enabled) {
-            if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedGridFrame, out Basis gridFrame)) {
-                gridRenderer.DrawGrid(draw_list, gridFrame, centerf, radius, settings.Grid);
-            }
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedGridFrame, out Basis gridFrame)) {
+            gridRenderer.DrawGrid(draw_list, gridFrame, center, radius, settings.Grid);
         }
+
+    }
+    private void DrawVelocity(ImDrawListPtr draw_list, Vehicle vehicle, Camera camera, IParentBody parentBody, float3 center, float radius, NavHudSettings settings) {
+        if(!settings.VelocityEnabled) return;
 
         if(settings.VelocityFrame == NavFrame.TVel && vehicle.Target == null) {
             settings.VelocityFrame = NavFrame.Auto;
@@ -133,26 +131,30 @@ public unsafe sealed class NavHudRenderer {
         }
 
         // Prograde, retrograde, etc. velocity indicators
-        if(settings.VelocityEnabled) {
-            if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedVelocityFrame, out Basis velFrame)) {
-                velocityRenderer.Draw(draw_list, velFrame, centerf, radius, settings.Symbols);
-            }
-        }
-
-        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Attitude, out Basis attitudeFrame)) {
-            attitudeRenderer.Draw(draw_list, attitudeFrame, centerf, radius, settings.Symbols);
-        }
-        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Tgt, out Basis tgtFrame)) {
-            targetRenderer.Draw(draw_list, tgtFrame, centerf, radius, settings.Symbols);
-        }
-        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Dock, out Basis dockFrame)) {
-            dockRenderer.Draw(draw_list, dockFrame, centerf, radius, settings.Symbols);
-        }
-        if(NavReferenceFrameBuilderBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Burn, out Basis burnFrame)) {
-            burnRenderer.Draw(draw_list, burnFrame, centerf, radius, settings.Symbols);
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, resolvedVelocityFrame, out Basis velFrame)) {
+            velocityRenderer.Draw(draw_list, velFrame, center, radius, settings.Symbols);
         }
 
 
-        ImGui.End();
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Attitude, out Basis attitudeFrame)) {
+            attitudeRenderer.Draw(draw_list, attitudeFrame, center, radius, settings.Symbols);
+        }
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Tgt, out Basis tgtFrame)) {
+            targetRenderer.Draw(draw_list, tgtFrame, center, radius, settings.Symbols);
+        }
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Dock, out Basis dockFrame)) {
+            dockRenderer.Draw(draw_list, dockFrame, center, radius, settings.Symbols);
+        }
+        if(NavReferenceBasisBuilder.TryCreate(vehicle, camera, parentBody, settings, NavFrame.Burn, out Basis burnFrame)) {
+            burnRenderer.Draw(draw_list, burnFrame, center, radius, settings.Symbols);
+        }
+    }
+    private void DrawRendezvousTrack(ImDrawListPtr draw_list, Vehicle vehicle, Camera camera, NavHudSettings settings) {
+        if(
+            !settings.RendezvousTrackEnabled ||
+            vehicle.Target == null ||
+            vehicle.Target is not Vehicle) return;
+
+        rendezvousTrackRenderer.Draw(draw_list, camera, vehicle, (Vehicle)vehicle.Target, (double)settings.RendezvousTrackMaxTime);
     }
 }

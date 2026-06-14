@@ -1,23 +1,24 @@
 ﻿using Brutal.ImGuiApi;
 using Brutal.Numerics;
 using KSA;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace NavHud;
 public interface IHudLineRenderer {
     void Line(ImDrawListPtr draw_list, float3 a, float3 b, float4 color, float thickness = 2.0f);
+    void Line(ImDrawListPtr draw_list, double3 a, double3 b, float4 color, float thickness = 2.0f);
 }
 
 public sealed class GizmoHudLineRenderer : IHudLineRenderer {
     public void Line(ImDrawListPtr draw_list, float3 a, float3 b, float4 color, float thickness = 2.0f) {
         Program.GizmosRenderer.DrawLine(a, b, color);
     }
+    public void Line(ImDrawListPtr draw_list, double3 a, double3 b, float4 color, float thickness = 2.0f) {
+        Program.GizmosRenderer.DrawLine(a, b, color);
+    }
 }
 
 public sealed class ImDrawLineRenderer : IHudLineRenderer {
-    public void Line(ImDrawListPtr draw_list, float3 a, float3 b, float4 color, float thickness = 2.0f) {
+    public void Line(ImDrawListPtr draw_list, double3 a, double3 b, float4 color, float thickness = 2.0f) {
         Camera camera = Program.GetCamera();
 
         float2 aScreen = camera.EgoToScreen(a);
@@ -35,7 +36,12 @@ public sealed class ImDrawLineRenderer : IHudLineRenderer {
             draw_list,
             aScreen,
             bScreen,
-            new ImColor8(red, green, blue ),
+            new ImColor8(red, green, blue),
             thickness);
+    }
+    public void Line(ImDrawListPtr draw_list, float3 a, float3 b, float4 color, float thickness = 2.0f) {
+        double3 doublea = new double3(a.X, a.Y, a.Z);
+        double3 doubleb = new double3(b.X, b.Y, b.Z);
+        Line(draw_list, doublea, doubleb, color, thickness);
     }
 }
