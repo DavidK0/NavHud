@@ -1,9 +1,13 @@
 # NavHud
 NavHud is a mod that adds a heads-up display that shows the attitude indicator/apollo 8-ball on the area around your vehicle.
 
-**Updated for KSA v2026.5.12.4510**
+**Updated for KSA v2026.6.9.4601**
 
 <img width="460" height="326" alt="promo_pic2" src="https://github.com/user-attachments/assets/8f8fb6e4-6494-4f27-95cb-aec77a833c5a" />
+
+<img width="480" height="270" alt="rendezvous_with_track" src="https://github.com/user-attachments/assets/dab2d8ac-65a7-45cb-8f99-8261c9467848" />
+
+
 
 ## How to install
 1. Install [StarMap](https://github.com/StarMapLoader/StarMap/)
