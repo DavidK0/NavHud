@@ -2,11 +2,8 @@
 using Brutal.ImGuiApi;
 using Brutal.Numerics;
 using KSA;
-using static KSA.Rendering.Lighting.CascadedShadowSystem;
 
 namespace NavHud;
-
-
 
 public unsafe sealed class NavHudRenderer {
     private readonly ImDrawLineRenderer lines;
@@ -14,6 +11,7 @@ public unsafe sealed class NavHudRenderer {
     private readonly GridRenderer gridRenderer;
     private readonly VelocityRenderer velocityRenderer;
     private readonly RendezvousTrackRenderer rendezvousTrackRenderer;
+    private readonly ConstellationsRenderer constellationsRenderer;
 
     private readonly AttitudeIndicatorRenderer attitudeRenderer;
     private readonly TargetIndicatorRenderer targetRenderer;
@@ -27,6 +25,7 @@ public unsafe sealed class NavHudRenderer {
         gridRenderer = new GridRenderer(lines);
         velocityRenderer = new VelocityRenderer(symbolRenderer);
         rendezvousTrackRenderer = new RendezvousTrackRenderer(lines);
+        constellationsRenderer = new ConstellationsRenderer(lines);
 
         attitudeRenderer = new AttitudeIndicatorRenderer(symbolRenderer);
         targetRenderer = new TargetIndicatorRenderer(symbolRenderer);
@@ -80,6 +79,7 @@ public unsafe sealed class NavHudRenderer {
         DrawGrid(draw_list, vehicle, camera, parentBody, centerf, radius, settings);
         DrawVelocity(draw_list, vehicle, camera, parentBody, centerf, radius, settings);
         DrawRendezvousTrack(draw_list, vehicle, camera, settings);
+        DrawConstellations(draw_list, vehicle, camera, parentBody, centerf, radius, settings);
 
         ImGui.End();
     }
@@ -156,5 +156,10 @@ public unsafe sealed class NavHudRenderer {
             vehicle.Target is not Vehicle) return;
 
         rendezvousTrackRenderer.Draw(draw_list, camera, vehicle, (Vehicle)vehicle.Target, (double)settings.RendezvousTrackMaxTime);
+    }
+
+    private void DrawConstellations(ImDrawListPtr draw_list, Vehicle vehicle, Camera camera, IParentBody parentBody, float3 center, float radius, NavHudSettings settings) {
+        if(!settings.DrawConstellations) return;
+        constellationsRenderer.Draw(draw_list, camera, center);
     }
 }

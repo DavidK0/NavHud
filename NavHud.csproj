@@ -33,6 +33,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="lines_in_20.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="ModMenu.Attributes.dll">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -7,7 +7,8 @@ Current features:
 - Prograde/retrograde, normal/antinormal, radial in/out for orbital velocity
 - per-save config files, saved in `saves/`
 - line thickness/symbol scaling
-- 3d docking trajectories
+- 3d rendezvous trajectories
+- target tracking
 TODO:
 - autopilot indicator when autopilot is on + tracking line
 - Docking port alignment indicator when a docking port is selected.
@@ -15,9 +16,8 @@ TODO:
 - better grid display/more options
 - Option to show only some indicators, e.g. only prograde/retrograde
 - planet (and other object) markers
-- target tracking
 - trace
-- move from per-save config to universal config?
 - text drawn on the HUD (e.g. speed)
 - Option to disable attitude markers
-- constellations
+- constellations (when the skybox gets fixed)
+- move from per-save config to universal config?

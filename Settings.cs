@@ -20,6 +20,8 @@ public sealed class NavHudSettings {
     public float RendezvousTrackTimeStep = 10;
     public float RendezvousTrackMaxTime = 10000;
 
+    public bool DrawConstellations = false;
+
     public NavHudSettings Clone() {
         return new NavHudSettings {
             RendezvousTrackEnabled = RendezvousTrackEnabled,
@@ -183,6 +185,8 @@ internal static class NavHudSettingsToml {
             "rendezvous_track_max_time",
             s.RendezvousTrackMaxTime);
 
+        s.DrawConstellations = block.GetBool("draw_constellations", s.DrawConstellations);
+
         return s;
     }
 
@@ -214,6 +218,8 @@ internal static class NavHudSettingsToml {
 
         writer.Write("rendezvous_track_time_step", s.RendezvousTrackTimeStep);
         writer.Write("rendezvous_track_max_time", s.RendezvousTrackMaxTime);
+
+        writer.Write("draw_constellations", s.DrawConstellations);
 
         writer.EndBlock();
     }
