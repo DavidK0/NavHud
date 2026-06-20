@@ -7,8 +7,6 @@ NavHud is a mod that adds a heads-up display that shows the attitude indicator/a
 
 <img width="480" height="270" alt="rendezvous_with_track" src="https://github.com/user-attachments/assets/dab2d8ac-65a7-45cb-8f99-8261c9467848" />
 
-
-
 ## How to install
 1. Install [StarMap](https://github.com/StarMapLoader/StarMap/)
    1. Download and unzip [the latest release of StarMap](https://github.com/StarMapLoader/StarMap/releases/latest)
@@ -16,7 +14,7 @@ NavHud is a mod that adds a heads-up display that shows the attitude indicator/a
 2. Install [ModMenu](https://github.com/MrJeranimo/ModMenu/)
    1. Download and unzip [the latest release of ModMenu](https://github.com/MrJeranimo/ModMenu/releases/latest)
    2. Put the contents in `Kitten Space Agency\Mods\`
-3. Download and unzip the latest release of Avionics [from Github](https://github.com/DavidK0/NavHud/releases/latest) or [from SpaceDock](https://spacedock.info/mod/4057/Avionics)
+3. Download and unzip the latest release of NavHud [from Github](https://github.com/DavidK0/NavHud/releases/latest) or [from SpaceDock](https://spacedock.info/mod/4283/NavHud)
 4. Place the contents into `Kitten Space Agency\Mods\`. Your content folder should look something like this:
 ```
 ├── Core
