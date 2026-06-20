@@ -15,9 +15,8 @@ NavHud is a mod that adds a heads-up display that shows the attitude indicator/a
    1. Download and unzip [the latest release of ModMenu](https://github.com/MrJeranimo/ModMenu/releases/latest)
    2. Put the contents in `Kitten Space Agency\Mods\`
 3. Download and unzip the latest release of NavHud [from Github](https://github.com/DavidK0/NavHud/releases/latest) or [from SpaceDock](https://spacedock.info/mod/4283/NavHud)
-4. Place the contents into `Kitten Space Agency\Mods\`. Your content folder should look something like this:
+4. Place the contents into `Kitten Space Agency\Mods\`. Your mod folder should look something like this:
 ```
-├── Core
 ├── NavHud
 │   ├── NavHud.deps.json
 │   ├── NavHud.dll
