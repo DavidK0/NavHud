@@ -33,6 +33,20 @@ NavHud is a mod that adds a heads-up display that shows the attitude indicator/a
 1. The HUD will be on by default.
 2. Turn it off or change settings by using the ModMenu menu
 
-## Links
+## Bookkeeping
+
+<details>
+<summary>Links elsewhere</summary>
+   
 * [NavHud on Ahwoo Forums](https://forums.ahwoo.com/threads/navhud.971/)
 * [NavHud on SpaceDock](https://spacedock.info/mod/4283/NavHud)
+</details>
+
+<details>
+<summary>My other mods</summary>
+   
+* [Avionics](https://github.com/DavidK0/Avionics)
+* [StellariumCatalog](https://github.com/DavidK0/StellariumCatalog)
+</details>
+
+**Disclaimer:** This mod was made with the help of AI.
