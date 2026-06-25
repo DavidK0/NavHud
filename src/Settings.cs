@@ -20,7 +20,7 @@ public sealed class NavHudSettings {
     public float RendezvousTrackTimeStep = 10;
     public float RendezvousTrackMaxTime = 10000;
 
-    public bool DrawConstellations = false;
+    public bool DrawConstellations = true;
 
     public NavHudSettings Clone() {
         return new NavHudSettings {

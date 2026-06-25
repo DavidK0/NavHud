@@ -31,8 +31,14 @@ internal class ConstellationsRenderer {
         double3 centerD = new double3(center.X, center.Y, center.Z);
 
         foreach(Segment segment in segments) {
-            double3 a = centerD + segment.A * SkyRadius;
-            double3 b = centerD + segment.B * SkyRadius;
+            double3 mirroredA = MirrorForGameSkybox(segment.A);
+            double3 mirroredB = MirrorForGameSkybox(segment.B);
+
+            double3 correctedA = RotateConstellationToGameSky(mirroredA);
+            double3 correctedB = RotateConstellationToGameSky(mirroredB);
+
+            double3 a = centerD + correctedA * SkyRadius;
+            double3 b = centerD + correctedB * SkyRadius;
 
             lineRenderer.Line(draw_list, a, b, white);
         }
@@ -78,8 +84,6 @@ internal class ConstellationsRenderer {
         }
     }
 
-    private const double AxialTiltDegrees = 23.439281;
-
     private static double3 RaDecToDirection(double raHours, double decDegrees) {
         double offsetHours = -6;
         double ra = (raHours + offsetHours) * Math.PI / 12.0;
@@ -94,21 +98,7 @@ internal class ConstellationsRenderer {
             Math.Sin(dec)
         );
 
-        return EquatorialToEcliptic(eq);
-    }
-
-    private static double3 EquatorialToEcliptic(double3 eq) {
-        double eps = AxialTiltDegrees * Math.PI / 180.0;
-
-        double cos = Math.Cos(eps);
-        double sin = Math.Sin(eps);
-
-        // Rotate around X axis by +23.4 degrees
-        return new double3(
-            eq.X,
-            eq.Y * cos + eq.Z * sin,
-            -eq.Y * sin + eq.Z * cos
-        );
+        return eq;
     }
 
     private readonly struct Segment {
@@ -119,5 +109,18 @@ internal class ConstellationsRenderer {
             A = a;
             B = b;
         }
+    }
+
+    public static float GameSkyRollDegrees = 90f;
+
+    private static double3 MirrorForGameSkybox(double3 v) {
+        return new double3(-v.X, v.Y, v.Z);
+    }
+
+    private static double3 RotateConstellationToGameSky(double3 v) {
+        double3 from = new double3(0, 0, 1);
+        double3 to = new double3(0, 1, 0);
+        double3 aligned = VectorMath.RotateFromTo(v, from, to);
+        return VectorMath.RotateAroundAxis(aligned, to, Math.PI / 2d);
     }
 }

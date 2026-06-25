@@ -94,4 +94,33 @@ public static class VectorMath {
             a.Y * b.Y +
             a.Z * b.Z;
     }
+
+    public static double3 RotateFromTo(double3 v, double3 from, double3 to) {
+        from = Normalize(from);
+        to = Normalize(to);
+
+        double3 axis = Cross(from, to);
+        double axisLength = Length(axis);
+
+        double dot = Dot(from, to);
+
+        if(axisLength < 1e-12) {
+            return dot > 0.0 ? v : new double3(-v.X, -v.Y, -v.Z);
+        }
+
+        axis = axis / axisLength;
+
+        double angle = Math.Atan2(axisLength, dot);
+
+        return RotateAroundAxis(v, axis, angle);
+    }
+
+    public static double3 RotateAroundAxis(double3 v, double3 axis, double angle) {
+        double cos = Math.Cos(angle);
+        double sin = Math.Sin(angle);
+
+        return v * cos
+            + Cross(axis, v) * sin
+            + axis * Dot(axis, v) * (1.0 - cos);
+    }
 }

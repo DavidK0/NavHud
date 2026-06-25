@@ -16,19 +16,19 @@
 
   <ItemGroup>
     <Reference Include="Brutal.Core.Common">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Common.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Common.dll</HintPath>
     </Reference>
     <Reference Include="Brutal.Core.Logging">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Logging.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Logging.dll</HintPath>
     </Reference>
     <Reference Include="Brutal.Core.Numerics">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.Core.Numerics.dll</HintPath>
     </Reference>
     <Reference Include="Brutal.ImGui">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\Brutal.ImGui.dll</HintPath>
     </Reference>
     <Reference Include="KSA">
-      <HintPath>..\..\..\..\..\Program Files\Kitten Space Agency\KSA.dll</HintPath>
+      <HintPath>..\..\..\..\..\..\Program Files\Kitten Space Agency\KSA.dll</HintPath>
     </Reference>
   </ItemGroup>
 
